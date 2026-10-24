@@ -1,0 +1,90 @@
+[
+  {
+    "path": "Streamlit/Fjord-FX/.gitignore",
+    "sha256": "8c1decc8f32c93d1d2bab8dafbcf2a6071aa86dddb2738cd920fd210676e1d14"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/.streamlit/config.toml",
+    "sha256": "3e60517cba95d5aa915f357aa75eec8a44ddaaaca3721db4411793553b38080a"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/README.md",
+    "sha256": "3aeff01e6b781eac60c71487a92e24d1f3c364c710f330f2b10dfd9bb354ee48"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/chat_report.py",
+    "sha256": "66426274459c5c6c8f94505085d0a73c3d94fe1c3dd08cf4fa8b359140521630"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/dashboard_charts.py",
+    "sha256": "95317fbb437758a55d9ffa25e82921d8668fea879fbb04154c4153996a501b2b"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/dashboard_data.py",
+    "sha256": "bd9d6218134a7e6627bfae8f351323a2e218a22b2d426affe8cb88eb139520ce"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/dashboard_i18n.py",
+    "sha256": "c448a4ba44165973585ea9164f105cb1d8cafd5acf73150e0267e1f962e90601"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/examples/history_2026-10-01_2026-10-14.json",
+    "sha256": "294540ab97d377f1caa0c49502027a823d242ac43f5cdb495d62f4603eecb20c"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/fx_monitor.py",
+    "sha256": "d050b0e0746100f6976f7c7ce0ee5bd22c4dabb74c97b065a6d495bbbe730637"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/nbu_rates.py",
+    "sha256": "a3790de296d66ac56d9e6297124263fa7df197c3f98a17d021baaaa6bd2c78c0"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/requirements.txt",
+    "sha256": "6d035503216c902a5947bbb43106bb988ee02f96baba08e3391ddad1e2539d57"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/streamlit_app.py",
+    "sha256": "dca74352e1a1e7a3e419764705e0e8eb5bf4286563e23f92f4464b61993d84e3"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests/fixtures/nbu_nok_2026-10.json",
+    "sha256": "7ee5995cd67dee3aa54bd3310a77bd4fbdf6c616f6f60700dba09356439b8d0f"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests/fixtures/norges_bank_2026-10-15.json",
+    "sha256": "22a64f7c655ee2ff91da19dda6a0425e2827d9ca5ef349e9ecc4033264628510"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests/fixtures/norges_bank_with_sek_2026-10-16.json",
+    "sha256": "8b2ab2988a632368546960864694be3aadb0104f0b1a6c4e0c819e895da8c133"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests/test_chat_report.py",
+    "sha256": "5eb2903bf50aecb7128f04f40ed95780d21d042cd5a9ba88f4c8b78057d69770"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests/test_dashboard_data.py",
+    "sha256": "12d68c7c6e7db73859ca2fc91f3b3e3400126434411a0f9063de866547c330f4"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests/test_i18n.py",
+    "sha256": "4411668459abb0a09240cf9bdf9d786ebc73ae9e9a26595a854c440c8357183e"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests/test_monitor.py",
+    "sha256": "4e1c3ba3ae2cf85f06c8b36ae81673e46b3666482610ea2f90a565792f4339b0"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests/test_nbu_rates.py",
+    "sha256": "40f55e6489719a3769b367db811567374865ec4ba5fecb00f30daaff30cd5da8"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests_ui/test_charts.py",
+    "sha256": "88acc62705a87db1ef869d2e4efcbfbe5290bc664ea5f6794a9ff3b10e75cc3c"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/tests_ui/test_streamlit.py",
+    "sha256": "f9d298360270d660fb6b0297b1c373b40a54943edab6754d65015a13175b3cee"
+  }
+]
