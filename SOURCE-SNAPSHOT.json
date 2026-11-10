@@ -5,23 +5,27 @@
   },
   {
     "path": "Streamlit/Fjord-FX/.streamlit/config.toml",
-    "sha256": "14c62d8105ac7b9f5152194d4a4257b45f29b7e05fef21604a5f7fa1980b3fb0"
+    "sha256": "3e60517cba95d5aa915f357aa75eec8a44ddaaaca3721db4411793553b38080a"
+  },
+  {
+    "path": "Streamlit/Fjord-FX/README.md",
+    "sha256": "626469aae5758cd4a19f71d6162cf134429befd03ef245bc15a0a7717223333a"
   },
   {
     "path": "Streamlit/Fjord-FX/chat_report.py",
-    "sha256": "51eb32a1ba3bf0df6fa9205ee24d89395cd60e8a1550c40743b911c37c89ff81"
+    "sha256": "66426274459c5c6c8f94505085d0a73c3d94fe1c3dd08cf4fa8b359140521630"
   },
   {
     "path": "Streamlit/Fjord-FX/dashboard_charts.py",
-    "sha256": "64e46f8211abc1dda8a30701cce98b00e55adcef991022d89d33a5826dd41983"
+    "sha256": "95317fbb437758a55d9ffa25e82921d8668fea879fbb04154c4153996a501b2b"
   },
   {
     "path": "Streamlit/Fjord-FX/dashboard_data.py",
-    "sha256": "bd2312fbf3734ceae9c48c329d5b9c241fbc05567adf1b94a9d1d07bf3538927"
+    "sha256": "bd9d6218134a7e6627bfae8f351323a2e218a22b2d426affe8cb88eb139520ce"
   },
   {
     "path": "Streamlit/Fjord-FX/dashboard_i18n.py",
-    "sha256": "113dde526436b08fbc2f2b3cd00d3d5d3d4a51540780c81ca21074f9b9f56b24"
+    "sha256": "c448a4ba44165973585ea9164f105cb1d8cafd5acf73150e0267e1f962e90601"
   },
   {
     "path": "Streamlit/Fjord-FX/examples/history_2026-10-01_2026-10-14.json",
@@ -29,15 +33,11 @@
   },
   {
     "path": "Streamlit/Fjord-FX/fx_monitor.py",
-    "sha256": "1d457569769af6711cd3dfade5ddb00dbbb5dad1519e36f543a790cae72911fb"
+    "sha256": "d050b0e0746100f6976f7c7ce0ee5bd22c4dabb74c97b065a6d495bbbe730637"
   },
   {
     "path": "Streamlit/Fjord-FX/nbu_rates.py",
-    "sha256": "bb3b93318530aa3ff18c32667ec6bb24b122bdfd0ef7b3de3781086b7173fcac"
-  },
-  {
-    "path": "Streamlit/Fjord-FX/README.md",
-    "sha256": "1c0870e1c315dd6a73e027d3713443983b5c10d34aa62cc61e326e4af491c918"
+    "sha256": "a3790de296d66ac56d9e6297124263fa7df197c3f98a17d021baaaa6bd2c78c0"
   },
   {
     "path": "Streamlit/Fjord-FX/requirements.txt",
@@ -45,7 +45,7 @@
   },
   {
     "path": "Streamlit/Fjord-FX/streamlit_app.py",
-    "sha256": "991ca84ad1f1abbaaf497c4f4a37712f0ac4253edf519dc5cabcb4d305f32df7"
+    "sha256": "dca74352e1a1e7a3e419764705e0e8eb5bf4286563e23f92f4464b61993d84e3"
   },
   {
     "path": "Streamlit/Fjord-FX/tests/fixtures/nbu_nok_2026-10.json",
@@ -56,51 +56,35 @@
     "sha256": "22a64f7c655ee2ff91da19dda6a0425e2827d9ca5ef349e9ecc4033264628510"
   },
   {
-    "path": "Streamlit/Fjord-FX/tests/fixtures/norges_bank_with_pln_2026-10-16.json",
-    "sha256": "7e3e9171e8607f523e940aeeff373f0d270f59270bc1531f9e7210f1a4a91379"
-  },
-  {
     "path": "Streamlit/Fjord-FX/tests/fixtures/norges_bank_with_sek_2026-10-16.json",
     "sha256": "8b2ab2988a632368546960864694be3aadb0104f0b1a6c4e0c819e895da8c133"
   },
   {
     "path": "Streamlit/Fjord-FX/tests/test_chat_report.py",
-    "sha256": "16c561de828aeac45e322c8f07839cced84f4548c0fb962a188707102248aeb7"
+    "sha256": "5eb2903bf50aecb7128f04f40ed95780d21d042cd5a9ba88f4c8b78057d69770"
   },
   {
     "path": "Streamlit/Fjord-FX/tests/test_dashboard_data.py",
-    "sha256": "8bc90800259ebbe34a1030280a87ad6bae5317c33ed8610ea4f2640cc6831c04"
+    "sha256": "12d68c7c6e7db73859ca2fc91f3b3e3400126434411a0f9063de866547c330f4"
   },
   {
     "path": "Streamlit/Fjord-FX/tests/test_i18n.py",
-    "sha256": "f4f27c5151fd0efd0c58fe9186118bb2875c249699bdf0c93e4be9984ae730c6"
+    "sha256": "4411668459abb0a09240cf9bdf9d786ebc73ae9e9a26595a854c440c8357183e"
   },
   {
     "path": "Streamlit/Fjord-FX/tests/test_monitor.py",
-    "sha256": "9977d956e7dc396d6ac1e6aaeeeded3af5836b70130678f945e2cbf58dc0fb3c"
+    "sha256": "4e1c3ba3ae2cf85f06c8b36ae81673e46b3666482610ea2f90a565792f4339b0"
   },
   {
     "path": "Streamlit/Fjord-FX/tests/test_nbu_rates.py",
-    "sha256": "3370c47adab3192284f3c4cbef35f3b2a7b51e3d24c34f15baac7f79061d1a32"
-  },
-  {
-    "path": "Streamlit/Fjord-FX/tests_ui/MANUAL_CHECKS.md",
-    "sha256": "ce39e290c37b760b4e70ef53d70035ee99474e647d698a05502b1c8767399270"
-  },
-  {
-    "path": "Streamlit/Fjord-FX/tests_ui/preview_states.py",
-    "sha256": "72239d42bd0b1c19f62bd8a19abf2ae0ed6691ecd04aeefd089445db9bb58708"
+    "sha256": "40f55e6489719a3769b367db811567374865ec4ba5fecb00f30daaff30cd5da8"
   },
   {
     "path": "Streamlit/Fjord-FX/tests_ui/test_charts.py",
-    "sha256": "72558dfc4a88a3cf1d516e62ec6846c7854f15578f24466d603624691c90fd83"
-  },
-  {
-    "path": "Streamlit/Fjord-FX/tests_ui/test_preview_states.py",
-    "sha256": "e194b428e0a2ca33ab751fa09b7b2a127ce03142ae05d2d63ce97c0bd96f8dba"
+    "sha256": "88acc62705a87db1ef869d2e4efcbfbe5290bc664ea5f6794a9ff3b10e75cc3c"
   },
   {
     "path": "Streamlit/Fjord-FX/tests_ui/test_streamlit.py",
-    "sha256": "09e370da37f904c8407388e500a6536129b1c55e5eb383119333c9a94c2da5b5"
+    "sha256": "f9d298360270d660fb6b0297b1c373b40a54943edab6754d65015a13175b3cee"
   }
 ]
