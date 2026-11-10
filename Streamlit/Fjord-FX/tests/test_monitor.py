@@ -98,7 +98,7 @@ class StorageTests(unittest.TestCase):
         self.assertEqual(usd["previous_date"], "2026-10-13")
         self.assertEqual(usd["change"], "-0.0641")
         self.assertEqual(usd["age_days"], 4)
-        self.assertIn("нового значения нет", text)
+        self.assertIn("no new value", text)
         self.assertIn("-0.67", text)
 
     def test_export_range_and_empty_report(self):
@@ -113,7 +113,7 @@ class StorageTests(unittest.TestCase):
 class TransportTests(unittest.TestCase):
     def test_latest_and_history_query(self):
         url = fx.make_url(last=2, end=date(2026, 10, 15))
-        self.assertIn("B.USD+EUR+SEK.NOK.SP", url)
+        self.assertIn("B.USD+EUR+SEK+PLN.NOK.SP", url)
         self.assertEqual(parse_qs(urlsplit(url).query)["lastNObservations"], ["2"])
         query = parse_qs(urlsplit(fx.make_url(start=date(2026, 1, 1), end=date(2026, 10, 14))).query)
         self.assertEqual(query["startPeriod"], ["2026-01-01"])

@@ -22,14 +22,15 @@ DB_PATH = fx.ROOT / "data/rates.sqlite3"
 REFRESH_INTERVAL = 300
 RETRY_INTERVAL = 30
 HISTORY_DAYS = 3 * 366
-CONVERTER_CURRENCIES = ("USD", "EUR", "NOK", "SEK", "UAH")
+CONVERTER_CURRENCIES = ("USD", "EUR", "NOK", "SEK", "UAH", "PLN")
 _REFRESH_LOCK = threading.Lock()
 PAIR_LABELS = {
-    "USD/NOK": "NOK за 1 USD",
-    "EUR/NOK": "NOK за 1 EUR",
-    "USD/EUR": "EUR за 1 USD",
-    "NOK/SEK": "SEK за 1 NOK",
-    "NOK/UAH": "UAH за 1 NOK",
+    "USD/NOK": "NOK per 1 USD",
+    "EUR/NOK": "NOK per 1 EUR",
+    "USD/EUR": "EUR per 1 USD",
+    "SEK/NOK": "NOK per 1 SEK",
+    "UAH/NOK": "NOK per 1 UAH",
+    "PLN/NOK": "NOK per 1 PLN",
 }
 
 
@@ -51,17 +52,29 @@ class _RefreshAttempt:
 _last_refresh: _RefreshAttempt | None = None
 
 
-def conversion_targets(currency: str) -> list[str]:
-    """Offer only the five published pairs and their inverse directions."""
-    return [target for target in CONVERTER_CURRENCIES
-            if f"{currency}/{target}" in chat.PAIRS or f"{target}/{currency}" in chat.PAIRS]
+def conversion_quote(pairs: dict[str, dict[date, Decimal]], source: str, target: str) -> dict | None:
+    """Convert any supported currencies using NOK quotes on their latest shared date."""
+    if source not in CONVERTER_CURRENCIES or target not in CONVERTER_CURRENCIES:
+        return None
+    histories = {code: pairs.get(f"{code}/NOK", {})
+                 for code in (source, target) if code != "NOK"}
+    if histories:
+        dates = set.intersection(*(set(values) for values in histories.values()))
+    else:  # NOK to NOK has a unit rate on any available publication date.
+        dates = {day for values in pairs.values() for day in values}
+    day = max(dates, default=None)
+    if day is None:
+        return None
+    source_rate = Decimal(1) if source == "NOK" else histories[source][day]
+    target_rate = Decimal(1) if target == "NOK" else histories[target][day]
+    return {"day": day, "rate": source_rate / target_rate}
 
 
 def database_signature() -> tuple[str, int, int, str]:
     if not DB_PATH.exists():
-        return str(DB_PATH), 0, 0, "nbu-v1"
+        return str(DB_PATH), 0, 0, "pln-v1"
     stat = DB_PATH.stat()
-    return str(DB_PATH), stat.st_mtime_ns, stat.st_size, "nbu-v1"
+    return str(DB_PATH), stat.st_mtime_ns, stat.st_size, "pln-v1"
 
 
 def read_snapshot() -> Snapshot:
@@ -70,8 +83,11 @@ def read_snapshot() -> Snapshot:
     today = fx.oslo_now().date()
     with closing(sqlite3.connect(DB_PATH.resolve().as_uri() + "?mode=ro", uri=True, timeout=10)) as db:
         rows = fx.load(db, end=today)
+        pln_query = (" UNION ALL SELECT fetched_at FROM pln_rates"
+                     if db.execute("SELECT 1 FROM sqlite_master WHERE type='table' AND name='pln_rates'").fetchone()
+                     else "")
         stamp = db.execute("""SELECT MAX(fetched_at) FROM (
-            SELECT fetched_at FROM rates UNION ALL SELECT fetched_at FROM sek_rates)""").fetchone()[0]
+            SELECT fetched_at FROM rates UNION ALL SELECT fetched_at FROM sek_rates""" + pln_query + ")").fetchone()[0]
         uah_values = {d: v for d, v in nbu.load(db).items() if d <= today}
     return Snapshot(rows, stamp, uah_values)
 
@@ -105,11 +121,11 @@ def _refresh_history(days: int, today: date) -> Snapshot:
     raw = fx.fetch(url, timeout=20, attempts=3)
     rows = fx.parse_sdmx(raw)
     if set(fx.SUPPORTED_CURRENCIES) - {r.currency for r in rows}:
-        raise fx.DataError("Источник вернул не все валюты. Сохранённая история не изменена.")
+        raise fx.DataError("The source did not return all currencies. Saved history is unchanged.")
     if any(r.day < start or r.day > today for r in rows):
-        raise fx.DataError("Источник вернул даты вне запрошенного периода.")
+        raise fx.DataError("The source returned dates outside the requested period.")
     if any(sum(r.currency == c for r in rows) < 2 for c in fx.SUPPORTED_CURRENCIES):
-        raise fx.DataError("Для сравнения нужны два наблюдения по каждой валюте.")
+        raise fx.DataError("Comparison requires two observations for each currency.")
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
     fx.atomic_text(fx.ROOT / "data/raw" / f"{stamp}.json", raw)
     with closing(fx.connect(DB_PATH)) as db:
@@ -118,7 +134,7 @@ def _refresh_history(days: int, today: date) -> Snapshot:
         try:
             nbu.refresh(db, start, today)
         except (fx.MonitorError, OSError) as exc:
-            raise fx.MonitorError(f"Norges Bank обновлён, НБУ недоступен; прежний NOK/UAH сохранён. {exc}") from exc
+            raise fx.MonitorError(f"Norges Bank updated, NBU unavailable; previous NOK/UAH retained. {exc}") from exc
         text, report = chat.build_report(fx.load(db, end=today), today, uah_values=nbu.load(db))
         fx.atomic_text(fx.ROOT / "data/chat_report.md", text)
         fx.atomic_text(fx.ROOT / "data/chat_report.json", json.dumps(report, ensure_ascii=False, indent=2) + "\n")
@@ -147,27 +163,27 @@ def quote_summary(values: dict[date, Decimal]) -> dict | None:
 
 def history_records(pairs: dict, start: date | None = None) -> list[dict]:
     dates = sorted({d for series in pairs.values() for d in series if start is None or d >= start})
-    return [{"Дата": day, **{pair: pairs[pair].get(day) for pair in chat.PAIRS}} for day in dates]
+    return [{"Date": day, **{pair: pairs[pair].get(day) for pair in chat.PAIRS}} for day in dates]
 
 
 def comparison_records(pairs: dict, start: date) -> list[dict]:
     """Use a shared baseline date; never compare nominal quotes in different units."""
-    if any(not pairs[p] for p in chat.PAIRS):
+    if any(not pairs[p] for p in chat.NOK_PAIRS):
         return []
-    common = set.intersection(*(set(pairs[p]) for p in chat.PAIRS))
+    common = set.intersection(*(set(pairs[p]) for p in chat.NOK_PAIRS))
     baseline = min((d for d in common if d >= start), default=None)
     if baseline is None:
         return []
-    return [{"Дата": d, "Пара": p, "Изменение, %": float((v / pairs[p][baseline] - 1) * 100)}
-            for p in chat.PAIRS for d, v in sorted(pairs[p].items()) if d >= baseline]
+    return [{"Date": d, "Pair": p, "ChangePercent": float((v / pairs[p][baseline] - 1) * 100)}
+            for p in chat.NOK_PAIRS for d, v in sorted(pairs[p].items()) if d >= baseline]
 
 
 def csv_bytes(records: list[dict], *, language: str | None = None) -> bytes:
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer, delimiter=";")
-    writer.writerow([i18n.tr(language, "date") if language else "Дата", *chat.PAIRS])
+    writer.writerow([i18n.tr(language, "date") if language else "Date", *chat.PAIRS])
     for record in records:
-        writer.writerow([record["Дата"].strftime("%d.%m.%Y"), *[
+        writer.writerow([record["Date"].strftime("%d.%m.%Y"), *[
             (i18n.number(record[p], language=language) if language else chat.format_number(record[p]))
             if record[p] is not None else "" for p in chat.PAIRS]])
     return ("\ufeff" + buffer.getvalue()).encode("utf-8")

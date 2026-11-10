@@ -1,4 +1,4 @@
-"""Fetch and format the five-pair chat summary and seven-weekday history."""
+"""Fetch and format the six-pair chat summary and seven-weekday history."""
 from __future__ import annotations
 
 import argparse
@@ -10,12 +10,14 @@ from decimal import Decimal
 import fx_monitor as fx
 import nbu_rates as nbu
 
-PAIRS = ("USD/NOK", "EUR/NOK", "USD/EUR", "NOK/SEK", "NOK/UAH")
-UNITS = {"USD/NOK": "NOK", "EUR/NOK": "NOK", "USD/EUR": "EUR", "NOK/SEK": "SEK", "NOK/UAH": "UAH"}
+NOK_PAIRS = ("USD/NOK", "EUR/NOK", "SEK/NOK", "UAH/NOK", "PLN/NOK")
+CROSS_PAIRS = ("USD/EUR",)
+PAIRS = NOK_PAIRS + CROSS_PAIRS
+UNITS = {pair: pair.split("/")[1] for pair in PAIRS}
 
 
 def format_number(value: Decimal, pattern: str = ".4f") -> str:
-    return format(value, pattern).replace("-", "−").replace(".", ",")
+    return format(value, pattern).replace("-", "−")
 
 
 def pair_values(rows: list[fx.Rate], uah_values: dict[date, Decimal] | None = None) -> dict[str, dict[date, Decimal]]:
@@ -26,13 +28,11 @@ def pair_values(rows: list[fx.Rate], uah_values: dict[date, Decimal] | None = No
             pairs["USD/NOK"][day] = value
             if (day, "EUR") in source:
                 pairs["USD/EUR"][day] = value / source[day, "EUR"]
-        elif currency == "EUR":
-            pairs["EUR/NOK"][day] = value
-        elif currency == "SEK":
-            # Stored value is NOK per 1 SEK; invert to SEK per 1 NOK.
-            pairs["NOK/SEK"][day] = Decimal(1) / value
+        elif currency in fx.SUPPORTED_CURRENCIES:
+            # Stored values are normalized to NOK per one currency unit.
+            pairs[f"{currency}/NOK"][day] = value
     # Keep the chat's Monday-Friday convention; NBU also returns effective weekend rates.
-    pairs["NOK/UAH"] = {d: v for d, v in (uah_values or {}).items() if d.weekday() < 5}
+    pairs["UAH/NOK"] = {d: Decimal(1) / v for d, v in (uah_values or {}).items() if d.weekday() < 5}
     return pairs
 
 
@@ -40,20 +40,20 @@ def build_report(rows: list[fx.Rate], today: date, *, offline: bool = False,
                  uah_values: dict[date, Decimal] | None = None) -> tuple[str, dict]:
     pairs = pair_values([r for r in rows if r.day <= today],
                         {d: v for d, v in (uah_values or {}).items() if d <= today})
-    lines = ["| Пара | Курс за 1 единицу | Изменение |", "|---|---:|---:|"]
+    lines = ["| Pair | Rate per 1 unit | Change |", "|---|---:|---:|"]
     dates = []
     summary = []
     for pair in PAIRS:
         history = sorted(pairs[pair].items())
         if not history:
-            lines.append(f"| {pair} | нет данных | нет данных для сравнения |")
+            lines.append(f"| {pair} | no data | no comparison data |")
             continue
         day, value = history[-1]
         previous = history[-2] if len(history) > 1 else None
         change = value - previous[1] if previous else None
         pct = change / previous[1] * 100 if previous else None
         change_text = (f"{format_number(change, '+.4f')} ({format_number(pct, '+.2f')}%)"
-                       if previous else "нет данных для сравнения")
+                       if previous else "no comparison data")
         lines.append(f"| {pair} | {format_number(value)} {UNITS[pair]} | {change_text} |")
         dates.append((pair, day, previous[0] if previous else None))
         summary.append({"pair": pair, "date": str(day), "rate": str(value),
@@ -64,19 +64,19 @@ def build_report(rows: list[fx.Rate], today: date, *, offline: bool = False,
     lines.append("")
     if dates and len({(d, p) for _, d, p in dates}) == 1:
         _, day, previous = dates[0]
-        lines.append(f"Курсы за {day:%d.%m.%Y}; изменение относительно "
-                     f"{previous.strftime('%d.%m.%Y') if previous else 'неизвестной даты'}.")
+        lines.append(f"Rates for {day:%d.%m.%Y}; changes relative to "
+                     f"{previous.strftime('%d.%m.%Y') if previous else 'an unknown date'}.")
     else:
         for pair, day, previous in dates:
-            lines.append(f"{pair}: {day:%d.%m.%Y}; предыдущая дата — "
-                         f"{previous.strftime('%d.%m.%Y') if previous else 'нет данных'}.")
+            lines.append(f"{pair}: {day:%d.%m.%Y}; previous date — "
+                         f"{previous.strftime('%d.%m.%Y') if previous else 'no data'}.")
     days = []
     day = today
     while len(days) < 7:
         if day.weekday() < 5:
             days.append(day)
         day -= timedelta(days=1)
-    lines += ["", "| Дата | " + " | ".join(PAIRS) + " |",
+    lines += ["", "| Date | " + " | ".join(PAIRS) + " |",
               "|---|" + "---:|" * len(PAIRS)]
     week = []
     missing = False
@@ -84,19 +84,19 @@ def build_report(rows: list[fx.Rate], today: date, *, offline: bool = False,
         values = {pair: pairs[pair].get(day) for pair in PAIRS}
         missing = missing or any(v is None for v in values.values())
         cells = [format_number(values[p]) if values[p] is not None
-                 else ("нет данных" if offline else "нет публикации") for p in PAIRS]
+                 else ("no data" if offline else "no publication") for p in PAIRS]
         lines.append(f"| {day:%d.%m.%Y} | " + " | ".join(cells) + " |")
         week.append({"date": str(day), **{p: str(v) if v is not None else None for p, v in values.items()}})
     if offline:
-        lines += ["", "Не все источники сейчас перепроверены; показаны сохранённые данные."]
+        lines += ["", "Not all sources have been rechecked; saved data is shown."]
     elif missing:
-        lines += ["", "Нет публикации — отсутствует исходный курс за указанную дату."]
+        lines += ["", "No publication means that no source rate exists for the specified date."]
     checked = fx.oslo_now().isoformat()
-    lines += ["", "Источник: https://www.norges-bank.no/en/topics/Statistics/exchange_rates/",
-              "Источник NOK/UAH: https://bank.gov.ua/ua/markets/exchangerates — UAH за 1 NOK, дата действия курса НБУ.",
-              "USD/EUR рассчитан через курсы к NOK; NOK/SEK — SEK за 1 NOK "
-              "(обратная котировка Norges Bank с учётом 100 SEK).",
-              f"Проверено: {checked} (Europe/Oslo).", ""]
+    lines += ["", "Source: https://www.norges-bank.no/en/topics/Statistics/exchange_rates/",
+              "UAH/NOK source: https://bank.gov.ua/ua/markets/exchangerates — inverse of UAH per 1 NOK, NBU effective date.",
+              "USD/EUR is calculated from NOK quotes; SEK/NOK is NOK per 1 SEK "
+              "(the Norges Bank quote normalized from 100 SEK).",
+              f"Checked: {checked} (Europe/Oslo).", ""]
     return "\n".join(lines), {"checked_at": checked, "offline": offline, "summary": summary, "week": week}
 
 
@@ -122,9 +122,9 @@ def main(argv=None) -> int:
                 raw = args.input_json.read_text(encoding="utf-8-sig") if args.input_json else fx.fetch(url)
                 rows = fx.parse_sdmx(raw)
                 if set(fx.SUPPORTED_CURRENCIES) - {r.currency for r in rows}:
-                    raise fx.DataError("Для сводки нужны USD, EUR и SEK.")
+                    raise fx.DataError("USD, EUR, SEK and PLN are required for the summary.")
                 if any(r.day < start or r.day > today for r in rows):
-                    raise fx.DataError("Ответ содержит даты вне запрошенного периода.")
+                    raise fx.DataError("The response contains dates outside the requested period.")
                 stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%S%fZ")
                 fx.atomic_text(fx.ROOT / "data/raw" / f"{stamp}.json", raw)
                 fx.save(db, rows, f"import:{args.input_json.resolve()}" if args.input_json else url)
@@ -136,7 +136,7 @@ def main(argv=None) -> int:
             try:
                 nbu.refresh(db, start, today, args.input_nbu_json)
             except (fx.MonitorError, OSError) as exc:
-                logging.error("НБУ: %s", exc)
+                logging.error("NBU: %s", exc)
                 failed = True
         text, data = build_report(fx.load(db, end=today), today, uah_values=nbu.load(db),
                                   offline=args.offline or bool(args.input_json) or bool(args.input_nbu_json) or failed)

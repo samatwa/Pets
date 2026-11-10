@@ -21,31 +21,31 @@ def parse(raw: str, start: date, end: date) -> dict[date, Decimal]:
     try:
         payload = json.loads(raw, parse_float=Decimal)
         if not isinstance(payload, list):
-            raise fx.DataError("НБУ вернул неверную структуру JSON.")
+            raise fx.DataError("NBU returned an invalid JSON structure.")
         result = {}
         for item in payload:
             if item["cc"] != "NOK" or str(item["r030"]) != "578":
-                raise fx.DataError("В ответе НБУ обнаружена другая валюта.")
+                raise fx.DataError("The NBU response contains an unexpected currency.")
             day = datetime.strptime(item["exchangedate"], "%d.%m.%Y").date()
             if not start <= day <= end:
-                raise fx.DataError("Дата НБУ вне запрошенного периода.")
+                raise fx.DataError("An NBU date is outside the requested period.")
             value = Decimal(str(item["rate_per_unit"]))
             units = Decimal(str(item["units"]))
             total = Decimal(str(item["rate"]))
             if any(not n.is_finite() or n <= 0 for n in (value, units, total)):
-                raise fx.DataError("НБУ вернул недопустимый курс или единицы.")
+                raise fx.DataError("NBU returned an invalid rate or units.")
             if abs(total / units - value) > Decimal("0.0000001"):
-                raise fx.DataError("Единицы и курс НБУ не согласованы.")
+                raise fx.DataError("The NBU rate and units are inconsistent.")
             if day in result and result[day] != value:
-                raise fx.DataError("НБУ вернул разные курсы за одну дату.")
+                raise fx.DataError("NBU returned conflicting rates for the same date.")
             result[day] = value
         if not result:
-            raise fx.NoDataError("НБУ не вернул значений NOK/UAH за этот период.")
+            raise fx.NoDataError("NBU returned no NOK/UAH values for this period.")
         return dict(sorted(result.items()))
     except (fx.DataError, fx.NoDataError):
         raise
     except (ValueError, TypeError, KeyError, AttributeError, InvalidOperation) as exc:
-        raise fx.DataError(f"Неверный ответ НБУ: {exc}") from exc
+        raise fx.DataError(f"Invalid NBU response: {exc}") from exc
 
 
 def load(db) -> dict[date, Decimal]:

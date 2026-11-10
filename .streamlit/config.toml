@@ -1,11 +1,5 @@
 [theme]
 base = "light"
-primaryColor = "#0c776b"
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f3f6f4"
-textColor = "#172d2a"
-borderColor = "#cddbd3"
-linkColor = "#0c776b"
 font = "sans serif"
 baseFontSize = 16
 headingFontSizes = ["36px", "26px", "21px", "18px", "16px", "14px"]
@@ -18,9 +12,29 @@ showWidgetBorder = true
 showSidebarBorder = false
 paddingTop = "0.5rem"
 paddingBottom = "2rem"
-chartCategoricalColors = ["#0c776b", "#6663ce", "#c9822e", "#487fa2", "#b15c92"]
+[theme.light]
+primaryColor = "#0c776b"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f3f6f4"
+textColor = "#172d2a"
+borderColor = "#cddbd3"
+linkColor = "#0c776b"
+chartCategoricalColors = ["#0c776b", "#6663ce", "#487fa2", "#b15c92", "#b47722"]
 dataframeHeaderBackgroundColor = "#edf4f0"
+dataframeHeaderTextColor = "#445d54"
 dataframeBorderColor = "#e4ebe7"
+
+[theme.dark]
+primaryColor = "#127f73"
+backgroundColor = "#101c19"
+secondaryBackgroundColor = "#192b25"
+textColor = "#e7f0eb"
+borderColor = "#38514b"
+linkColor = "#73d3c1"
+chartCategoricalColors = ["#62cdbb", "#b4a5ff", "#7db8e0", "#e6a0ce", "#f2c16d"]
+dataframeHeaderBackgroundColor = "#20352f"
+dataframeHeaderTextColor = "#d1e2d9"
+dataframeBorderColor = "#38514b"
 
 [browser]
 gatherUsageStats = false

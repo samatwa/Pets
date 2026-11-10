@@ -15,26 +15,82 @@ import nbu_rates as nbu
 
 
 class DashboardDataTests(unittest.TestCase):
+    def test_converter_supports_every_currency_combination(self):
+        day = date(2026, 10, 16)
+        rates = {"USD": "10", "EUR": "12", "SEK": "1", "UAH": "0.2", "PLN": "2"}
+        pairs = {f"{code}/NOK": {day: Decimal(value)} for code, value in rates.items()}
+        for source in data.CONVERTER_CURRENCIES:
+            for target in data.CONVERTER_CURRENCIES:
+                with self.subTest(source=source, target=target):
+                    quote = data.conversion_quote(pairs, source, target)
+                    self.assertEqual(quote["day"], day)
+                    self.assertGreater(quote["rate"], 0)
+                    if source == target:
+                        self.assertEqual(quote["rate"], 1)
+                    inverse = data.conversion_quote(pairs, target, source)
+                    self.assertAlmostEqual(quote["rate"] * inverse["rate"], Decimal(1))
+        for source, target, expected in [("USD", "SEK", "10"), ("EUR", "PLN", "6"),
+                                         ("UAH", "PLN", "0.1"), ("PLN", "UAH", "10"),
+                                         ("NOK", "UAH", "5"), ("UAH", "NOK", "0.2")]:
+            with self.subTest(source=source, target=target):
+                self.assertEqual(data.conversion_quote(pairs, source, target)["rate"], Decimal(expected))
+
+    def test_converter_uses_latest_shared_date_without_mixing_publications(self):
+        a, b, c = date(2026, 10, 14), date(2026, 10, 15), date(2026, 10, 16)
+        pairs = {"USD/NOK": {a: Decimal("10"), b: Decimal("12"), c: Decimal("20")},
+                 "UAH/NOK": {a: Decimal("0.2"), b: Decimal("0.3")}}
+        self.assertEqual(data.conversion_quote(pairs, "USD", "UAH"), {"day": b, "rate": Decimal("40")})
+        self.assertEqual(data.conversion_quote(pairs, "UAH", "USD"), {"day": b, "rate": Decimal("0.025")})
+        self.assertEqual(data.conversion_quote(pairs, "USD", "NOK")["day"], c)
+        self.assertEqual(data.conversion_quote(pairs, "NOK", "UAH")["day"], b)
+
+    def test_converter_handles_missing_history_without_inventing_cross_rates(self):
+        a, b = date(2026, 10, 15), date(2026, 10, 16)
+        pairs = {"USD/NOK": {a: Decimal("10")}, "UAH/NOK": {b: Decimal("0.2")}}
+        self.assertIsNone(data.conversion_quote(pairs, "USD", "UAH"))
+        self.assertIsNone(data.conversion_quote(pairs, "USD", "PLN"))
+        self.assertIsNone(data.conversion_quote({}, "NOK", "USD"))
+        self.assertIsNone(data.conversion_quote({}, "NOK", "NOK"))
+        self.assertIsNone(data.conversion_quote(pairs, "USD", "XYZ"))
+        self.assertEqual(data.conversion_quote(pairs, "USD", "USD"), {"day": a, "rate": Decimal(1)})
+
+    def test_inverted_uah_history_recalculates_change_and_percent(self):
+        a, b = date(2026, 10, 15), date(2026, 10, 16)
+        pairs = chat.pair_values([], {a: Decimal("4"), b: Decimal("5")})
+        summary = data.quote_summary(pairs["UAH/NOK"])
+        self.assertEqual(summary["rate"], Decimal("0.2"))
+        self.assertEqual(summary["change"], Decimal("-0.05"))
+        self.assertEqual(summary["percent"], Decimal("-20"))
+
+    def test_comparison_excludes_cross_rate_and_does_not_require_its_dates(self):
+        a, b = date(2026, 10, 15), date(2026, 10, 16)
+        pairs = {p: {a: Decimal("10"), b: Decimal("11")} for p in chat.NOK_PAIRS}
+        pairs["USD/EUR"] = {}
+        records = data.comparison_records(pairs, a)
+        self.assertEqual({r["Pair"] for r in records}, set(chat.NOK_PAIRS))
+        self.assertEqual(len(records), 2 * len(chat.NOK_PAIRS))
+        self.assertTrue(all(r["ChangePercent"] == 10 for r in records if r["Date"] == b))
+
     def test_comparison_uses_one_shared_date(self):
         a, b = date(2026, 10, 15), date(2026, 10, 16)
         pairs = {p: {a: Decimal("10"), b: Decimal("11")} for p in chat.PAIRS}
-        del pairs["NOK/SEK"][a]
+        del pairs["SEK/NOK"][a]
         records = data.comparison_records(pairs, a)
-        self.assertEqual(len(records), len(chat.PAIRS))
-        self.assertTrue(all(r["Дата"] == b and r["Изменение, %"] == 0 for r in records))
+        self.assertEqual(len(records), len(chat.NOK_PAIRS))
+        self.assertTrue(all(r["Date"] == b and r["ChangePercent"] == 0 for r in records))
 
     def test_weekday_export_keeps_missing_values_empty(self):
         days = data.weekdays(date(2026, 10, 19))
         self.assertEqual(days[-2:], [date(2026, 10, 16), date(2026, 10, 19)])
-        record = {"Дата": days[-1], **{p: None for p in chat.PAIRS}}
-        record["NOK/SEK"] = Decimal("1.0490")
+        record = {"Date": days[-1], **{p: None for p in chat.PAIRS}}
+        record["SEK/NOK"] = Decimal("0.9533")
         exported = data.csv_bytes([record])
         self.assertTrue(exported.startswith(b"\xef\xbb\xbf"))
         parsed = list(csv.reader(io.StringIO(exported.decode("utf-8-sig")), delimiter=";"))
-        self.assertEqual(parsed[1], ["19.10.2026", "", "", "", "1,0490", ""])
+        self.assertEqual(parsed[1], ["19.10.2026", *["0.9533" if p == "SEK/NOK" else "" for p in chat.PAIRS]])
 
     def test_read_only_snapshot_and_rejected_refresh(self):
-        raw = (Path(__file__).parent / "fixtures/norges_bank_with_sek_2026-10-16.json").read_text(encoding="utf-8")
+        raw = (Path(__file__).parent / "fixtures/norges_bank_with_pln_2026-10-16.json").read_text(encoding="utf-8")
         rates = fx.parse_sdmx(raw)
         with tempfile.TemporaryDirectory() as folder:
             db_path = Path(folder) / "rates.sqlite3"
@@ -49,6 +105,20 @@ class DashboardDataTests(unittest.TestCase):
                         data.refresh_history()
                 self.assertEqual(data.read_snapshot().rows, rates)
 
+    def test_legacy_database_without_pln_remains_readable(self):
+        rates = fx.parse_sdmx((Path(__file__).parent / "fixtures/norges_bank_with_sek_2026-10-16.json").read_text(encoding="utf-8"))
+        with tempfile.TemporaryDirectory() as folder:
+            db_path = Path(folder) / "rates.sqlite3"
+            with fx.connect(db_path) as db:
+                fx.save(db, rates, "legacy")
+                db.execute("DROP TABLE pln_rates")
+            db.close()
+            with patch.object(data, "DB_PATH", db_path):
+                self.assertEqual(data.read_snapshot().rows, rates)
+            with fx.connect(db_path) as db:
+                self.assertEqual(fx.load(db), rates)
+            db.close()
+
 
 class RefreshTests(unittest.TestCase):
     def setUp(self):
@@ -57,7 +127,7 @@ class RefreshTests(unittest.TestCase):
         self.root = Path(self.folder.name)
         self.db_path = self.root / "data/rates.sqlite3"
         fixtures = Path(__file__).parent / "fixtures"
-        self.raw = (fixtures / "norges_bank_with_sek_2026-10-16.json").read_text(encoding="utf-8")
+        self.raw = (fixtures / "norges_bank_with_pln_2026-10-16.json").read_text(encoding="utf-8")
         self.nbu_raw = (fixtures / "nbu_nok_2026-10.json").read_text(encoding="utf-8")
         self.now = 1000.0
         self.clock = datetime.fromisoformat("2026-10-23T18:00:00+02:00")
@@ -129,7 +199,7 @@ class RefreshTests(unittest.TestCase):
             return self.raw
         self.fetch.side_effect = fetch
         for _ in range(2):
-            with self.assertRaisesRegex(fx.MonitorError, "Norges Bank обновлён"):
+            with self.assertRaisesRegex(fx.MonitorError, "Norges Bank updated"):
                 data.refresh_history()
         self.assertEqual(self.fetch.call_count, 2)
         snapshot = data.read_snapshot()

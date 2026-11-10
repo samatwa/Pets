@@ -58,8 +58,8 @@ class NBUTests(unittest.TestCase):
     def test_nbu_weekends_are_not_compared_as_working_days(self):
         values = nbu.parse(self.raw, self.start, self.end)
         pairs = chat.pair_values([], values)
-        self.assertNotIn(date(2026, 10, 18), pairs["NOK/UAH"])
-        self.assertEqual(pairs["NOK/UAH"][date(2026, 10, 19)], Decimal("4.7544"))
+        self.assertNotIn(date(2026, 10, 18), pairs["UAH/NOK"])
+        self.assertEqual(pairs["UAH/NOK"][date(2026, 10, 19)], Decimal(1) / Decimal("4.7544"))
 
 
 if __name__ == "__main__":

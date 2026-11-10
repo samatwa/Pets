@@ -12,7 +12,7 @@ import dashboard_i18n as i18n
 def padded_domain(values, *, percent=False):
     values = [float(v) for v in values]
     if not values or not all(math.isfinite(v) for v in values):
-        raise ValueError("Для шкалы нужны конечные значения.")
+        raise ValueError("The scale requires finite values.")
     low, high = min(values), max(values)
     # Flat series still need a non-degenerate scale, without inventing movement.
     minimum_padding = 0.01 if percent else max(abs(low), abs(high), 1) * 0.00005
@@ -30,14 +30,14 @@ def value_axis(values, *, percent=False, language="en"):
     digits = max(2, min(8, -math.floor(math.log10(step))))
     number_format = ("+" if percent else "") + f".{digits}f"
     expression = f"format(datum.value, '{number_format}')"
-    if language in ("nb", "ru"):
+    if language != "en":
         expression = f"replace({expression}, '.', ',')"
     return alt.Axis(tickCount=6, labelOverlap=True, labelExpr=expression)
 
 
 def observation_x(frame, *, mini=False):
     """Equal-width publication slots; never synthesize weekend observations."""
-    days = sorted(frame["День"].unique())
+    days = sorted(frame["Day"].unique())
     long_period = not mini and (pd.Timestamp(days[-1]) - pd.Timestamp(days[0])).days > 180
     # Month/year labels need one tick per month, not several identical month labels.
     first_in_month = {}
@@ -53,20 +53,20 @@ def observation_x(frame, *, mini=False):
             ticks.append(days[-1])
     date_expression = ("slice(datum.label, 5, 7) + '.' + slice(datum.label, 0, 4)" if long_period else
                        "slice(datum.label, 8, 10) + '.' + slice(datum.label, 5, 7)")
-    return alt.X("День:O", title=None, sort=days,
+    return alt.X("Day:O", title=None, sort=days,
                  scale=alt.Scale(type="band", domain=days, paddingInner=0, paddingOuter=0),
                  axis=alt.Axis(values=ticks, grid=False, ticks=False, domain=False,
                                labelAngle=0, labelOverlap=True, labelPadding=8,
                                labelFontSize=11 if mini else 12,
-                               labelColor="#445d54", labelExpr=date_expression))
+                               labelExpr=date_expression))
 
 
 def hover_layers(frame, x, y, tooltip):
     """Full-height hit areas show the nearest observation even away from its dot."""
-    hover = alt.selection_point(fields=["День"], on="pointerover", clear="pointerout", empty=False)
+    hover = alt.selection_point(fields=["Day"], on="pointerover", clear="pointerout", empty=False)
     base = alt.Chart(frame)
     rule = base.mark_rule(color="#9ca3af", strokeDash=[3, 3], strokeWidth=1).encode(x=x).transform_filter(hover)
-    point = base.mark_circle(color="#0c776b", size=75).encode(x=x, y=y).transform_filter(hover)
+    point = base.mark_circle(size=75).encode(x=x, y=y).transform_filter(hover)
     # Transparent date bands cover the gaps between dots and the full plot height.
     # Keep this last so line marks cannot intercept the pointer and lose the tooltip.
     hit = base.mark_rect(fillOpacity=0).encode(x=x, tooltip=tooltip).add_params(hover)
@@ -77,18 +77,18 @@ def mini_chart(values, title, *, language="en"):
     """Seven actual observations with their own dates and a data-range scale."""
     history = sorted(values.items())[-7:]
     if not history:
-        raise ValueError("Нет наблюдений для мини-графика.")
-    frame = pd.DataFrame([{"Дата": day, "День": day.isoformat(), "Курс": float(rate),
-                           "Дата курса": day.strftime("%d.%m.%Y"),
-                           "Курс для показа": i18n.number(rate, language=language)} for day, rate in history])
-    frame["Дата"] = pd.to_datetime(frame["Дата"])
+        raise ValueError("No observations are available for the mini chart.")
+    frame = pd.DataFrame([{"Date": day, "Day": day.isoformat(), "Rate": float(rate),
+                           "RateDate": day.strftime("%d.%m.%Y"),
+                           "DisplayRate": i18n.number(rate, language=language)} for day, rate in history])
+    frame["Date"] = pd.to_datetime(frame["Date"])
     x = observation_x(frame, mini=True)
-    y = alt.Y("Курс:Q", axis=None, title=None,
-              scale=alt.Scale(domain=padded_domain(frame["Курс"]), zero=False, nice=False))
-    tooltip = [alt.Tooltip("Дата курса:N", title=i18n.tr(language, "date")),
-               alt.Tooltip("Курс для показа:N", title=title)]
+    y = alt.Y("Rate:Q", axis=None, title=None,
+              scale=alt.Scale(domain=padded_domain(frame["Rate"]), zero=False, nice=False))
+    tooltip = [alt.Tooltip("RateDate:N", title=i18n.tr(language, "date")),
+               alt.Tooltip("DisplayRate:N", title=title)]
     line = alt.Chart(frame).mark_line(
-        color="#0c776b", strokeWidth=2,
+        strokeWidth=2,
         point=alt.OverlayMarkDef(size=28, filled=True), interpolate="linear"
     ).encode(
         x=x, y=y
@@ -97,42 +97,42 @@ def mini_chart(values, title, *, language="en"):
 
 
 def quote_chart(records, title, *, percent=False, language="en"):
-    ordered = sorted(records, key=lambda row: row["Дата"])
+    ordered = sorted(records, key=lambda row: row["Date"])
     if not ordered:
-        raise ValueError("Нет наблюдений для графика.")
-    baseline = Decimal(str(ordered[0]["Курс"]))
+        raise ValueError("No observations are available for the chart.")
+    baseline = Decimal(str(ordered[0]["Rate"]))
     if baseline <= 0:
-        raise ValueError("Начальный курс должен быть положительным.")
+        raise ValueError("The initial rate must be positive.")
     points = []
     for row in ordered:
-        rate = Decimal(str(row["Курс"]))
+        rate = Decimal(str(row["Rate"]))
         change = (rate / baseline - 1) * 100
-        points.append({"Дата": row["Дата"], "День": row["Дата"].isoformat(),
-                       "Дата курса": row["Дата"].strftime("%d.%m.%Y"),
-                       "Значение": float(change if percent else rate),
-                       "Курс": i18n.number(rate, language=language),
-                       "Изменение за период": i18n.number(change, "+.2f", language=language) + "%"})
+        points.append({"Date": row["Date"], "Day": row["Date"].isoformat(),
+                       "RateDate": row["Date"].strftime("%d.%m.%Y"),
+                       "Value": float(change if percent else rate),
+                       "Rate": i18n.number(rate, language=language),
+                       "PeriodChange": i18n.number(change, "+.2f", language=language) + "%"})
     frame = pd.DataFrame(points)
-    frame["Дата"] = pd.to_datetime(frame["Дата"])
-    domain = padded_domain(frame["Значение"], percent=percent)
-    y = alt.Y("Значение:Q", title=i18n.tr(language, "percent_axis") if percent else title,
+    frame["Date"] = pd.to_datetime(frame["Date"])
+    domain = padded_domain(frame["Value"], percent=percent)
+    y = alt.Y("Value:Q", title=i18n.tr(language, "percent_axis") if percent else title,
               scale=alt.Scale(domain=domain, zero=False, nice=False),
-              axis=value_axis(frame["Значение"], percent=percent, language=language))
+              axis=value_axis(frame["Value"], percent=percent, language=language))
     x = observation_x(frame)
-    tooltip = [alt.Tooltip("Дата курса:N", title=i18n.tr(language, "date")),
-               alt.Tooltip("Курс:N", title=title),
-               alt.Tooltip("Изменение за период:N", title=i18n.tr(language, "period_change"))]
+    tooltip = [alt.Tooltip("RateDate:N", title=i18n.tr(language, "date")),
+               alt.Tooltip("Rate:N", title=title),
+               alt.Tooltip("PeriodChange:N", title=i18n.tr(language, "period_change"))]
     line = alt.Chart(frame).mark_line(
-        color="#0c776b", strokeWidth=3,
+        strokeWidth=3,
         point=alt.OverlayMarkDef(size=32, filled=True) if len(points) <= 60 else False,
         interpolate="linear"
     ).encode(
         x=x, y=y)
     layers = [line, *hover_layers(frame, x, y, tooltip)]
     if percent:
-        zero = alt.Chart(pd.DataFrame({"Ноль": [0]})).mark_rule(
+        zero = alt.Chart(pd.DataFrame({"Zero": [0]})).mark_rule(
             color="#8c9f97", strokeDash=[4, 4], strokeWidth=1
-        ).encode(y=alt.Y("Ноль:Q", scale=alt.Scale(domain=domain, zero=False, nice=False)))
+        ).encode(y=alt.Y("Zero:Q", scale=alt.Scale(domain=domain, zero=False, nice=False)))
         return alt.layer(zero, *layers).properties(height=340)
     # An area mark's implicit y2=0 can force zero back into a shared domain.
     # A line-only quote chart avoids that baseline and accurately shows the range.
@@ -141,39 +141,39 @@ def quote_chart(records, title, *, percent=False, language="en"):
 
 def comparison_chart(records, *, language="en"):
     frame = pd.DataFrame(records)
-    frame["Дата"] = pd.to_datetime(frame["Дата"])
-    frame["День"] = frame["Дата"].dt.strftime("%Y-%m-%d")
-    frame["Дата курса"] = frame["Дата"].dt.strftime("%d.%m.%Y")
-    domain = padded_domain(frame["Изменение, %"], percent=True)
-    zero = alt.Chart(pd.DataFrame({"Ноль": [0]})).mark_rule(
+    frame["Date"] = pd.to_datetime(frame["Date"])
+    frame["Day"] = frame["Date"].dt.strftime("%Y-%m-%d")
+    frame["RateDate"] = frame["Date"].dt.strftime("%d.%m.%Y")
+    domain = padded_domain(frame["ChangePercent"], percent=True)
+    zero = alt.Chart(pd.DataFrame({"Zero": [0]})).mark_rule(
         color="#8c9f97", strokeDash=[4, 4], strokeWidth=1
-    ).encode(y=alt.Y("Ноль:Q", scale=alt.Scale(domain=domain, zero=False, nice=False)))
+    ).encode(y=alt.Y("Zero:Q", scale=alt.Scale(domain=domain, zero=False, nice=False)))
     x = observation_x(frame)
-    y = alt.Y("Изменение, %:Q", title=i18n.tr(language, "view_percent"),
+    y = alt.Y("ChangePercent:Q", title=i18n.tr(language, "view_percent"),
               scale=alt.Scale(domain=domain, zero=False, nice=False),
-              axis=value_axis(frame["Изменение, %"], percent=True, language=language))
-    legend = alt.Legend(orient="bottom", columns=3, labelFontSize=12, labelColor="#445d54",
+              axis=value_axis(frame["ChangePercent"], percent=True, language=language))
+    legend = alt.Legend(orient="bottom", columns=3, labelFontSize=12,
                         symbolStrokeWidth=2.5, labelLimit=100)
     lines = alt.Chart(frame).mark_line(strokeWidth=2.5).encode(
         x=x,
         y=y,
-        color=alt.Color("Пара:N", title=None, legend=legend, scale=alt.Scale(domain=list(chat.PAIRS),
-            range=["#0c776b", "#6663ce", "#c9822e", "#487fa2", "#b15c92"])),
-        strokeDash=alt.StrokeDash("Пара:N", title=None, legend=legend,
-                                 scale=alt.Scale(domain=list(chat.PAIRS),
-                                                 range=[[], [6, 3], [2, 2], [8, 3, 2, 3], [10, 4]])),
-        tooltip=[alt.Tooltip("Дата курса:N", title=i18n.tr(language, "date")),
-                 alt.Tooltip("Пара:N", title=i18n.tr(language, "pair")),
-                 alt.Tooltip("Изменение, %:Q", title=i18n.tr(language, "view_percent"), format="+.2f")])
+        color=alt.Color("Pair:N", title=None, legend=legend,
+                        scale=alt.Scale(domain=list(chat.NOK_PAIRS))),
+        strokeDash=alt.StrokeDash("Pair:N", title=None, legend=legend,
+                                 scale=alt.Scale(domain=list(chat.NOK_PAIRS),
+                                                 range=[[], [6, 3], [2, 2], [8, 3, 2, 3], [10, 3]])),
+        tooltip=[alt.Tooltip("RateDate:N", title=i18n.tr(language, "date")),
+                 alt.Tooltip("Pair:N", title=i18n.tr(language, "pair")),
+                 alt.Tooltip("ChangePercent:Q", title=i18n.tr(language, "view_percent"), format="+.2f")])
     dates = []
-    for day, group in frame.groupby("День", sort=True):
-        values = dict(zip(group["Пара"], group["Изменение, %"]))
-        dates.append({"День": day, "Дата курса": group["Дата курса"].iloc[0], **{
+    for day, group in frame.groupby("Day", sort=True):
+        values = dict(zip(group["Pair"], group["ChangePercent"]))
+        dates.append({"Day": day, "RateDate": group["RateDate"].iloc[0], **{
             pair: i18n.number(Decimal(str(values[pair])), "+.2f", language=language) + "%"
-            if pair in values else i18n.tr(language, "no_data") for pair in chat.PAIRS}})
-    tooltip = [alt.Tooltip("Дата курса:N", title=i18n.tr(language, "date")),
-               *[alt.Tooltip(field=pair, type="nominal", title=pair) for pair in chat.PAIRS]]
-    hover = alt.selection_point(fields=["День"], on="pointerover", clear="pointerout", empty=False)
+            if pair in values else i18n.tr(language, "no_data") for pair in chat.NOK_PAIRS}})
+    tooltip = [alt.Tooltip("RateDate:N", title=i18n.tr(language, "date")),
+               *[alt.Tooltip(field=pair, type="nominal", title=pair) for pair in chat.NOK_PAIRS]]
+    hover = alt.selection_point(fields=["Day"], on="pointerover", clear="pointerout", empty=False)
     bands = alt.Chart(pd.DataFrame(dates))
     rule = bands.mark_rule(color="#9ca3af", strokeDash=[3, 3]).encode(x=x).transform_filter(hover)
     hit = bands.mark_rect(fillOpacity=0).encode(x=x, tooltip=tooltip).add_params(hover)
