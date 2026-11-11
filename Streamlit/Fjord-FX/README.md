@@ -1,131 +1,324 @@
 # Fjord FX — Norges Bank and NBU exchange rates
 
-A Python 3.11+ command-line monitor and Streamlit dashboard for Windows, macOS and Linux.
+Python 3.11+; Windows, macOS and Linux. The main cards show **NOK per 1 USD, 1 EUR, 1 SEK, 1 UAH and 1 PLN**.
+USD/EUR appears alongside them as EUR per 1 USD. Green decreases mean foreign
+currency costs fewer kroner (NOK strengthens); red increases mean it costs more
+(NOK weakens). The APIs are public and require no key. Norges Bank supplies
+USD, EUR, SEK and PLN quotes; UAH/NOK is the inverse of the official National Bank
+of Ukraine rate in UAH per 1 NOK.
 
-## Currency pairs
+## English / Norwegian / Polish / Ukrainian
 
-| Pair | Displayed quote | Source |
-|---|---|---|
-| USD/NOK | NOK per 1 USD | Norges Bank |
-| EUR/NOK | NOK per 1 EUR | Norges Bank |
-| USD/EUR | EUR per 1 USD | Calculated from same-date Norges Bank quotes |
-| NOK/SEK | SEK per 1 NOK | Inverse of the normalized Norges Bank SEK quote |
-| NOK/UAH | UAH per 1 NOK | Direct official NBU quote |
+Use the **🇬🇧 / 🇳🇴 / 🇵🇱 / 🇺🇦** flag selector at the top of the sidebar to choose
+English, Norwegian, Polish or Ukrainian. Language names appear on hover. Embedded flag
+images work offline and display at approximately 28 × 20 pixels, preserving
+their proportions without rounded corners. A rectangular border marks the selection.
+The Norwegian translation uses **Bokmål**; English is the default.
 
-The public APIs require no key. NOK/UAH is not a cross rate between banks. NBU effective dates may differ from Norges Bank publication dates and are labeled separately.
+The selection changes buttons, explanations, the converter, table, axis labels
+and chart tooltips. Displayed results use a decimal point in English and a decimal
+comma in Norwegian, Polish and Ukrainian. **Amount input uses a decimal point in all languages.**
+CSV downloads follow the current interface language. Filters and the amount remain
+selected when switching languages within an open session; switching does not fetch
+the API again. Terminal messages and generated text reports use English and decimal points.
+Existing sessions with the removed Russian selection return to English automatically.
 
-## Quick start
+To update from an archive, stop Streamlit, replace the application files and
+restart the dashboard. Keep the existing **data** directory and **.venv**
+environment; neither is included in the archive.
 
-From this project directory:
+## PLN/NOK
+
+PLN/NOK shows NOK per 1 Polish zloty from the official Norges Bank API.
+It is available in cards, charts, percentage comparison, the PLN ↔ NOK converter
+and CSV downloads. PLN history is stored in `pln_rates`, preserving existing tables.
+Older databases remain readable; select **Update rates** to load PLN history.
+
+## UAH/NOK and mini charts
+
+UAH/NOK means **NOK per 1 UAH**. It is calculated as 1 divided by the official
+NBU rate in UAH per 1 NOK. Each historical observation is inverted before
+calculating the change and percentage; simply negating the original percentage
+would be incorrect. It does not combine quotes from different banks. NBU effective
+dates can differ from Norges Bank publication dates and are labeled separately.
+
+[Official NBU API documentation](https://bank.gov.ua/admin_uploads/article/Instr_API_KURS_VAL_data_Full_eng.pdf).
+
+History endpoint:
+`https://bank.gov.ua/NBU_Exchange/exchange_site?start=YYYYMMDD&end=YYYYMMDD&valcode=nok&sort=exchangedate&order=asc&json`.
+
+The application uses `rate_per_unit` in UAH per 1 NOK and validates `cc`,
+currency code 578, positive units, consistency between `rate/units` and dates.
+Rates are stored in the `nbu_nok_rates` table in the same database, preserving
+the Norges Bank history. The summary compares Monday–Friday dates; NBU weekend
+rates are not treated as new weekday publications. Import with
+`chat_report.py --input-json FILE --input-nbu-json NBU_FILE`.
+
+Each card always shows the last seven published observations as a mini chart.
+Rate help includes the period and the previous
+comparison date. A line below each chart shows the quote unit and date,
+for example, `NOK per 1 UAH · 23.10.2026`. Dates appear below the seven points.
+Hovering anywhere in a chart shows the nearest date and rate to four decimal places.
+If fewer than seven observations exist, all available values are shown without
+filling gaps.
+
+The arrow and percentage compare only with the previous rate date, so the latest
+daily increase can occur while the mini chart declines over its full period.
+Cards have separate scales; their visual amplitudes cannot be compared.
+Use the main chart with its labeled scale or percentage mode for precise changes.
+
+## Streamlit dashboard — Fjord FX
+
+The interactive dashboard includes five NOK rate cards and a USD/EUR card in an equal-width grid, with changes and
+sparklines, a chart with 1-month / 3-month / 1-year / 3-year periods, percentage
+comparison of the five NOK pairs, a converter with reverse directions, the latest ten weekdays and CSV
+downloads.
+
+The collapsible sidebar contains language and visible-card selection,
+chart pair, period, rate/percentage view, comparison and chart help. It starts
+collapsed; use the sidebar arrow at the top left to open settings. Hiding cards
+preserves their table order and keeps all pairs available in the chart, converter
+and CSV. Changing settings or language preserves selections without fetching rates.
+The main chart shows its active pair/view and period even when the sidebar is closed.
+
+Choose light or dark appearance using **⋮ → Settings → App theme** at the top
+right. Cards, tables and charts follow the selected palette.
+
+The expandable section above the table and column-header help explain publication
+times: Norges Bank quotes are published around 16:00 Oslo time on business days.
+NBU NOK/UAH is set by 15:30 Kyiv time on the setting date and takes effect on the
+following business day. These are bank schedules; **Update rates** fetches newly
+published values subject to a shared five-minute check interval. CSV data retains
+the original currency-pair names.
+
+Schedule sources: [Norges Bank](https://www.norges-bank.no/tema/Statistikk/Valutakurser/valutakurser/),
+[NBU, paragraph 13](https://bank.gov.ua/admin_uploads/law/Regulation_10122019_148_24032025.pdf?v=13),
+[NBU effective-date metadata](https://bank.gov.ua/en/file/download?file=ER_metadata_en.pdf).
+
+All six cards follow the table order: USD/NOK, EUR/NOK, SEK/NOK, UAH/NOK, PLN/NOK, USD/EUR.
+Cards, the chart/converter row and the table share the full content width.
+Cards have equal widths with an 8 px gap and always include mini charts.
+The chart and converter use proportional columns with matching heights.
+The columns stack on screens up to 640 px wide.
+**Update rates** sits beside **Download CSV** in the **Last 10 business days**
+header. The rate date and download time remain above the cards.
+Pair and period options are available without hidden horizontal scrolling.
+
+Flags remain rectangular. Sources appear below the logo; local Oslo, Kyiv and Warsaw
+times share a compact line with country flags. Clocks show seconds, update every
+second without fetching rates again, and observe daylight saving time using
+`Europe/Oslo`, `Europe/Kyiv` and `Europe/Warsaw`.
+
+The converter has **From currency** and **To currency** selectors.
+It starts with SEK → NOK, matching the quote direction in the SEK/NOK card.
+**⇄** swaps the currencies while keeping the amount. The second selector offers
+available destinations for the chosen source currency, using the dashboard's
+six pairs and their inverse quotes.
+
+Below the converter are links to the official [SpareBank 1 currency calculator](https://www.sparebank1.no/nb/bank/privat/kundeservice/verktoy/valutakalkulator.html)
+and [DNB currency calculator](https://www.dnb.no/markets/valuta-og-renter/valutakalkulator).
+
+The comparison includes only USD/NOK, EUR/NOK, SEK/NOK, UAH/NOK and PLN/NOK; USD/EUR
+remains available in the single-pair chart. The multiyear chart shows month and
+year on the X axis. Dense point markers are
+hidden while exact values remain available in tooltips. Comparison series use
+both colors and line patterns, with a legend below the chart. Enabling comparison
+selects percentage change; disabling it restores the previous single-pair view.
+The table date stays pinned during horizontal scrolling. Amount input always
+uses a decimal point; result and CSV formatting follow the selected language.
+
+```powershell
+python -m pip install -r requirements.txt
+python -m streamlit run streamlit_app.py --server.address 127.0.0.1
+```
+
+Open `http://localhost:8501`. Run from the project directory so that
+`.streamlit/config.toml` supplies the theme. To use another port, add
+`--server.port 8502` to the launch command.
+
+The dashboard reads the existing database. If none exists, it automatically
+downloads history on the first visit. **Update rates** downloads approximately
+three years of official Norges Bank and NBU history and updates the same database,
+CSV files and reports.
+
+Updates are shared by all visitors within one application process. Saved data
+is reused for five minutes after a successful download, and concurrent requests
+do not start duplicate downloads. After a failure, another network attempt becomes
+available in 30 seconds. Changing filters or language does not download data.
+These limits apply to the dashboard; terminal commands make a request on each run.
+Offline, the dashboard shows saved values and their dates. A refresh error does
+not clear history.
+
+A dash in the table means no saved value exists for that date, including today
+before publication. Chart periods are measured from the current date in Oslo;
+changing the period does not change the latest card values. **3 years** means
+three calendar years, accounting for leap dates. If the database contains only
+one year of history, use **Update rates** to download the remainder.
+
+The rate chart uses the selected period's minimum and maximum plus a small margin,
+rather than starting at zero, so small movements remain visible in the original
+quote units. It has no fill down to zero and explicitly labels the enlarged scale.
+Percentage mode shows movement from the first observation of the period (0%).
+The period's minimum, maximum and overall change appear below the chart.
+Refreshing data or changing the pair or period recalculates the scale from all
+visible values, including sharp moves. Axis precision adapts to the range.
+
+Publication dates are evenly spaced on all charts, without empty weekend slots
+or invented missing rates. The vertical guide and tooltip work across the full
+chart height, including between points. Comparison tooltips show every pair for
+the selected date and explicitly identify missing values. Comparison uses one
+common starting date and percentage changes rather than mixing different quote
+units. Both converter selectors offer USD, EUR, NOK, SEK, UAH and PLN, and any
+combination can be converted in either direction. Cross-rates are calculated
+through NOK using the latest date with published quotes for both currencies;
+that date appears below the result. Selecting the same currency gives a 1:1
+rate. The converter excludes bank fees.
+
+The local dashboard requires no account. To make it available online, deploy it
+to Streamlit Community Cloud as described below.
+
+Run interface tests after installing `requirements.txt`:
+
+```powershell
+python -m unittest discover -s tests_ui -v
+```
+
+For loading, empty history and error states without API calls or database writes,
+see the [isolated preview and phone/keyboard checklist](tests_ui/MANUAL_CHECKS.md).
+
+## Streamlit Community Cloud deployment
+
+1. Upload the project to a GitHub repository, including `requirements.txt` and
+   `.streamlit/config.toml`.
+2. Create an application in [Streamlit Community Cloud](https://share.streamlit.io/).
+   Select the repository, branch and `streamlit_app.py` entry point.
+3. In advanced settings, select a supported Python version that you have tested
+   locally, then deploy.
+4. Open the application. History loads automatically if no database exists.
+   If a source fails, retry with **Update rates** after 30 seconds.
+   The local `data/` directory is excluded from Git.
+
+Dependencies are installed from `requirements.txt`; rate API keys are unnecessary.
+The local SQLite database serves as a cache in Cloud and is not guaranteed to
+persist. Lost history can be downloaded again with the refresh button.
+Persistent history requires an external database.
+
+[Official deployment guide](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy).
+[Local-storage limitations](https://docs.streamlit.io/develop/concepts/connections/connecting-to-data).
+
+## Windows quick start
+
+Extract the archive, open PowerShell in `Fjord-FX` and run:
 
 ```powershell
 python -m venv .venv
 .\.venv\Scripts\python.exe -m pip install -r requirements.txt
+.\.venv\Scripts\python.exe chat_report.py
+
+# Open the browser dashboard instead of the text summary
 .\.venv\Scripts\python.exe -m streamlit run streamlit_app.py --server.address 127.0.0.1
 ```
 
-Open `http://localhost:8501`. Use `--server.port 8502` for another port. Environment activation is optional. On macOS/Linux, use `python3 -m venv .venv` and `.venv/bin/python` instead of `.\.venv\Scripts\python.exe`.
+Environment activation is optional. If `python` is unavailable, install
+Python 3.11+ from [python.org](https://www.python.org/downloads/) and retry.
+The shared `requirements.txt` installs `tzdata` (the Windows time-zone database),
+Streamlit, Altair and pandas for the dashboard. Streamlit Cloud uses the same file.
+HTTP, SQLite, CSV, JSON and calculations use the Python standard library.
 
-The shared requirements install Streamlit, Altair, pandas and `tzdata`. HTTP, SQLite, JSON, CSV and decimal calculations use the Python standard library. Run from the project directory so `.streamlit/config.toml` supplies the theme.
+On macOS/Linux, use `python3 -m venv .venv`, then `.venv/bin/python`
+instead of `.\.venv\Scripts\python.exe`.
 
-## Dashboard
+## Commands
 
-The dashboard provides rate cards, seven-observation mini charts, a historical chart with 1-month / 3-month / 1-year / 3-year periods, percentage comparison, a converter with inverse directions, the latest ten weekdays and CSV downloads.
-
-English, Norwegian Bokmål and Russian interface translations are included in this published snapshot; English is the default. Documentation is maintained in English. Language switching preserves filters and amount within the session and does not fetch rates again. CSV formatting follows the selected language.
-
-Mini charts use the latest seven actual observations, or all available observations when fewer exist. Missing dates are not synthesized. Each card has its own scale, so visual amplitudes cannot be compared. The daily arrow and percentage compare with the previous observation, which can differ from the mini chart's overall direction.
-
-The converter uses the latest published rate and excludes bank fees and markups. Its currency selectors expose the supported pairs and inverse directions. Swapping direction preserves the amount.
-
-## Refresh and offline behavior
-
-The first visit downloads history when no database exists. **Update rates** downloads approximately three years of official history and updates the database, CSV files and reports.
-
-Successful refreshes are shared across visitors in the same process for five minutes. Concurrent requests do not launch duplicate downloads. After a failure, another network attempt is available after 30 seconds. Filter and language changes do not fetch data. Terminal commands make a request on each run.
-
-Offline, saved values remain visible with their actual dates. Refresh errors do not clear history. A dash means no saved value exists for the displayed date, including today before publication.
-
-Chart periods are measured from the current Oslo date. Three years means three calendar years with leap-date handling. Cards always show the latest available quotes, independently of the selected chart period.
-
-Rate charts use the visible minimum and maximum plus a margin, with an explicit enlarged-scale explanation. Percentage charts start from the period's first observation at zero. Comparison uses a common starting date and percentage changes so incompatible quote units are not mixed. Publication dates are equally spaced without empty weekend slots. Tooltips expose exact dates and values, including explicit missing values.
-
-## Publication schedules and sources
-
-Norges Bank normally publishes around 16:00 Oslo time on business days. NBU sets NOK/UAH by 15:30 Kyiv time on the setting date, effective on the following business day. Fetching is controlled by the application's refresh interval, independently of the banks' publication schedules.
-
-- [Norges Bank exchange rates](https://www.norges-bank.no/en/topics/Statistics/exchange_rates/)
-- [Norges Bank publication information](https://www.norges-bank.no/tema/Statistikk/Valutakurser/valutakurser/)
-- [NBU regulation, paragraph 13](https://bank.gov.ua/admin_uploads/law/Regulation_10122019_148_24032025.pdf?v=13)
-- [NBU effective-date metadata](https://bank.gov.ua/en/file/download?file=ER_metadata_en.pdf)
-- [Official NBU API documentation](https://bank.gov.ua/admin_uploads/article/Instr_API_KURS_VAL_data_Full_eng.pdf)
-
-## Terminal commands
-
-Run from this directory with your environment's Python:
+Run these examples from the project directory with your environment's Python:
 
 ```powershell
-# Five-pair summary and seven weekdays
+# Full summary: six pairs, changes and seven weekdays of history
 python chat_report.py
 
-# Saved summary without network access
+# The same summary from saved data, without network access
 python chat_report.py --offline
 
-# Basic USD/NOK and EUR/NOK summary; also downloads SEK
+# Basic USD/NOK and EUR/NOK summary; the download also stores SEK
 python fx_monitor.py latest
 
-# Inclusive history range
+# History for an inclusive date range
 python fx_monitor.py history --start 2026-01-01 --end 2026-10-14
 
-# Basic summary from the local database
+# Summary from the saved database, without network access
 python fx_monitor.py report
 
 # Export all saved values
 python fx_monitor.py export --file data/export.csv
 
-# Export a selected period
+# Export only the selected period
 python fx_monitor.py export --start 2026-10-01 --end 2026-10-14 --file data/october.csv
 
-# Global options go before the command
+# Configure timeout and attempts; global options go BEFORE the command
 python fx_monitor.py --timeout 15 --attempts 3 latest
 
-# Alternate database and output directory
+# Use a different database and output directory
 python fx_monitor.py --db data/another.sqlite3 --output-dir data/another latest
 ```
 
-`latest` fetches two observations per currency. Use `history` to fill gaps or obtain older data; download large histories by year. Empty periods return an explanatory error rather than zero rates. After importing history, run `report` or `latest` to refresh the summary.
+`latest` fetches the last two observations for each currency. To fill gaps after
+a long pause or download older values, run `history` for the required period.
+Large histories are easier to download one year at a time.
+An empty period, such as a weekend-only range, returns an explanatory error
+rather than zero rates. `history` writes history and updates CSV; run `report`
+or `latest` afterward to update the summary.
 
-`chat_report.py` downloads 30 days and builds the latest-rate table and seven-weekday history. Its weekday convention is Monday–Friday; unavailable publications are marked without borrowing rates from another date.
+## Stored files
 
-USD/EUR = USD/NOK ÷ EUR/NOK on the same date. NOK/SEK = 100 ÷ the original SEK quote, or 1 ÷ the normalized database value. Calculations use `Decimal` and round only for display. A missing input prevents the corresponding cross-rate calculation.
+Default paths are relative to **the program file**, so running from another
+directory does not accidentally create a new database.
 
-## Storage and precision
-
-Default paths are relative to the program file, so launching elsewhere does not create an accidental new database.
-
-| Path | Contents |
+| File | Contents |
 |---|---|
-| `data/rates.sqlite3` | Rate history, currency/date keys, UTC fetch timestamps and sources |
-| `data/rates.csv` | Complete accumulated history, UTF-8 BOM, decimal-point rates |
-| `data/latest_report.md` and `data/latest_report.json` | Latest successful basic summary |
-| `data/chat_report.md` and `data/chat_report.json` | Five-pair summary and weekday table |
-| `data/raw/*.json` | Accepted original API responses |
-| `data/last_error_report.md` | Saved-data summary with the latest error |
+| `data/rates.sqlite3` | History keyed by currency and date, UTC download time and source |
+| `data/rates.csv` | Complete accumulated history, UTF-8 BOM, decimal point |
+| `data/latest_report.md` | Latest successful basic summary |
+| `data/latest_report.json` | The same summary in machine-readable form |
+| `data/raw/*.json` | Accepted API responses for source verification |
+| `data/last_error_report.md` | Database summary with the latest error message |
 
-Rates are decimal strings in SQLite and JSON. Repeated runs do not duplicate records. Revisions update the same currency/date key when that date is downloaded again. Accepted original replies remain available for verification. Exported date ranges do not change the stored history.
+SQLite stores rates as decimal strings; calculations use `Decimal`.
+JSON also represents rates and absolute/percentage changes as strings.
+Repeated runs do not create duplicates. If the bank revises a date's value,
+the next download of that date updates it; accepted source responses are retained.
+A separate `export` CSV contains only the selected range.
 
-Changes compare with the previous published observation, not the previous program run:
+## Change calculations
 
 ```text
-absolute_change = current_rate - previous_published_rate
-percentage_change = absolute_change / previous_published_rate * 100
+change_NOK = current_rate − previous_published_rate
+change_%   = change_NOK / previous_published_rate × 100
 ```
 
-On Mondays the comparison date is usually Friday. Repeated runs do not reset the change to zero. Weekends, holidays and dates before publication show the latest actual observation. Nothing is interpolated. Values older than four calendar days trigger a technical warning; this is not a bank-holiday calendar. Dates use `Europe/Oslo` with daylight saving time.
+The comparison uses the previous **observation date**, regardless of how many
+times the program runs. On Monday, that is usually Friday. Repeating a run on
+the same day does not reset the change to zero.
 
-## API validation
+On weekends, holidays and before the next publication, the latest available date
+is shown with a note that no new value exists for today. Rates are not interpolated.
+Values older than four calendar days trigger a warning; this technical threshold
+does not replace a bank-holiday calendar. The current date uses `Europe/Oslo`,
+including daylight saving time.
 
-The [Norges Bank API guide](https://www.norges-bank.no/en/topics/Statistics/open-data/guide-data-warehouse/) documents the `EXR` flow. The [query builder](https://query.norges-bank.no/) is publicly accessible.
+## Verified official API format
+
+Verified on October 15, 2026:
+
+- The [Norges Bank API guide](https://www.norges-bank.no/en/topics/Statistics/open-data/guide-data-warehouse/)
+  documents the `EXR` flow, the `B.USD.NOK.SP` example, `startPeriod` / `endPeriod`
+  and supported download formats.
+- The [official query builder](https://query.norges-bank.no/) states that the
+  service is freely available without authentication.
+- The [exchange-rate page](https://www.norges-bank.no/en/topics/Statistics/exchange_rates/)
+  describes indicative middle rates and publication around 16:00 CET.
+- Actual responses to the two queries below were checked in a browser: the latest
+  two observations and the October 1–14 history. This verified the API itself
+  in addition to its documentation.
 
 ```text
 https://data.norges-bank.no/api/data/EXR/B.USD+EUR.NOK.SP?format=sdmx-json&locale=en&lastNObservations=2
@@ -133,53 +326,96 @@ https://data.norges-bank.no/api/data/EXR/B.USD+EUR.NOK.SP?format=sdmx-json&local
 https://data.norges-bank.no/api/data/EXR/B.USD+EUR.NOK.SP?format=sdmx-json&locale=en&startPeriod=2026-10-01&endPeriod=2026-10-14
 ```
 
-`B` denotes business-day observations, `NOK` the quote currency and `SP` spot rates. Date parameters use `YYYY-MM-DD`; `lastNObservations=2` applies per series.
+| Component | Meaning |
+|---|---|
+| `EXR` | Exchange rates |
+| `B` | Business-day observations |
+| `USD+EUR+SEK+PLN` | Four base currencies |
+| `NOK` | Quote currency |
+| `SP` | Spot |
+| `lastNObservations=2` | Two observations **per series** |
+| `startPeriod`, `endPeriod` | Dates in `YYYY-MM-DD` format |
 
-SDMX replies are decoded through `data.dataSets` and `structure.dimensions.series` using `FREQ`, `BASE_CUR`, `QUOTE_CUR`, `TENOR` and `TIME_PERIOD`. Dimension and currency order are not hard-coded. `UNIT_MULT` must be 0 for USD/EUR and 2 for SEK, which is quoted per 100 SEK. SEK is divided by 100 before storage in `sek_rates`.
+The SDMX-JSON response contains `data`, with `dataSets` and `structure` inside.
+The program decodes series keys using `structure.dimensions.series` IDs
+`FREQ`, `BASE_CUR`, `QUOTE_CUR` and `TENOR`, and observation indices using
+`TIME_PERIOD`. Currency and dimension order is not hard-coded.
 
-NBU history uses:
-
-```text
-https://bank.gov.ua/NBU_Exchange/exchange_site?start=YYYYMMDD&end=YYYYMMDD&valcode=nok&sort=exchangedate&order=asc&json
-```
-
-`rate_per_unit` is UAH per 1 NOK. Validation checks currency identifiers including code 578, dates, positive units and consistency with `rate/units`. Data is stored in `nbu_nok_rates`. NBU weekend effective rates are not presented as new weekday publications.
-
-Import both sources with `chat_report.py --input-json FILE --input-nbu-json NBU_FILE`.
+`UNIT_MULT` is validated: USD, EUR and PLN require 0; SEK requires 2 (a quote per 100 SEK).
+SEK is divided by 100 before storage, so the database and CSV contain NOK per
+1 SEK. The summary uses this same direction as SEK/NOK: NOK per 1 SEK.
+Unexpected units or series prevent writes. The separate `sek_rates` table stores
+SEK in the same database while preserving the original `rates` table.
+`data/chat_report.md` and `data/chat_report.json` contain the full six-pair summary.
 
 ## Errors and reliability
 
-The default is a 20-second timeout per attempt and up to three attempts. Network failures, HTTP 429 and 5xx are retried with delays. Numeric `Retry-After` is capped at 60 seconds. Permanent 4xx failures are not retried.
+- The default timeout is 20 seconds per attempt, with up to three attempts.
+- Network failures, HTTP 429 and 5xx are retried with a delay. Numeric `Retry-After`
+  is honored up to 60 seconds. HTTP 400 and other permanent 4xx errors are not retried.
+- HTTP 204/404, invalid JSON, missing currencies, future dates, invalid units and
+  negative, zero or infinite values are handled explicitly.
+- The entire response is validated before changing the rate table. SQLite writes
+  are transactional; reports and CSV files are replaced atomically. A CSV write
+  failure does not undo a committed database transaction; repeat the export after
+  resolving the disk problem.
+- An unavailable API preserves existing history. If both currencies have saved
+  values, a database summary is shown with a warning and is not labeled as fresh.
+  The latest successful summary remains in `latest_report.*`; the error goes to
+  `last_error_report.md` and standard error. An old error file may remain after
+  recovery; check its date and the current process exit code.
+- Exit codes: `0` for success, `1` for fetch/storage failure and `2` for invalid arguments.
+- TLS certificate verification is enabled. No API keys or third-party sources are used.
 
-HTTP 204/404, malformed JSON, missing currencies, future dates, invalid units, conflicting observations and nonpositive or nonfinite rates are handled explicitly. The whole response is validated before changing rate tables.
+## Terminal summary
 
-SQLite writes are transactional. Reports and CSV files are replaced atomically. A failed CSV write does not undo a committed database transaction; export again after resolving the file problem.
+Run `python chat_report.py`. Output starts with a compact table of pair, rate per
+unit and change for USD/NOK, EUR/NOK, SEK/NOK, UAH/NOK, PLN/NOK and USD/EUR.
+Quote units are NOK for the first five pairs and EUR for USD/EUR. Changes use the appropriate
+quote currency and percentages relative to the previous published date; dates are
+included. A second table covers the latest **seven weekdays**, including the run
+date, with date and all six currency-pair columns, ordered from oldest to newest.
 
-An unavailable API preserves history. A saved basic summary is explicitly marked as unverified; the last successful report remains in `latest_report.*`, while failures go to `last_error_report.md` and standard error. An old error file can remain after recovery, so check its date and the current exit code.
+USD/EUR = USD/NOK ÷ EUR/NOK for the same date.
+SEK/NOK = the original Norges Bank SEK quote / 100.
+UAH/NOK = 1 / the official NBU NOK/UAH rate.
+Calculations use `Decimal`; only display values are rounded.
+A cross rate is not calculated if a source value for that date is missing.
 
-Exit codes are 0 for success, 1 for fetch/storage failure, and 2 for invalid arguments. TLS verification is enabled.
+`python chat_report.py` downloads 30 days, stores four original Norges Bank
+series and NBU NOK/UAH rates, then builds both tables. `fx_monitor.py latest/report`
+remain available for the basic NOK summary.
 
-## Streamlit Community Cloud
+Weekdays mean Monday through Friday. A missing publication is explicitly marked
+without borrowing a value from another date. If the API is unavailable, saved
+values are labeled as unverified and missing values as unavailable.
+The summary is printed to the terminal and saved to `data/chat_report.md`
+and `data/chat_report.json`.
 
-1. Select this repository and its `main` branch in [Streamlit Community Cloud](https://share.streamlit.io/).
-2. Set the entry point to `Streamlit/Fjord-FX/streamlit_app.py`.
-3. Choose a supported Python version tested with the dependencies.
-4. Open the application; initial history loads automatically. Retry a failed first fetch after 30 seconds.
-
-Dependencies come from `requirements.txt`. No API keys are required. The root theme configuration supports the nested deployment entry point.
-
-Cloud's local SQLite files are a cache and may be lost. Refresh can rebuild history; persistent storage requires an external database. See the [deployment guide](https://docs.streamlit.io/deploy/streamlit-community-cloud/deploy-your-app/deploy) and [data-connection guidance](https://docs.streamlit.io/develop/concepts/connections/connecting-to-data).
-
-## Offline checks
+## Offline tests and demonstration
 
 ```powershell
 python -m unittest discover -s tests -v
-python -m unittest discover -s tests_ui -v
 
 python fx_monitor.py history --start 2026-10-01 --end 2026-10-14 --input-json examples/history_2026-10-01_2026-10-14.json
 python fx_monitor.py latest --input-json tests/fixtures/norges_bank_2026-10-15.json
 ```
 
-File imports are identified as local data and do not contact the API. The historical example contains 20 observations for October 1–14, 2026. Fixtures include verified October 15 replies. The original published baseline recorded 39 core and 26 interface/chart checks; this documentation update does not claim a new application test run.
+The project includes verified October 15 API responses and a history fixture with
+20 observations for October 1–14. File imports are always identified as local data;
+the program does not contact the API in this mode. This allows testing before
+network access is configured. `examples/history_*.json` contains a historical
+response with only JSON indentation changed.
 
-When updating application files, keep any existing local `data/` and `.venv/` directories.
+The original baseline comprised 39 calculation/storage tests and 26 chart/interface
+tests. Coverage includes API format, SEK units per 100 kronor, SEK/NOK and inverse UAH/NOK
+quotes, changes, cross-rate date alignment, seven weekdays, missing data,
+duplicate-free storage, revisions, HTTP failures and retries, shared refresh
+intervals, concurrent visitors, first load without a database and cache date changes.
+Subsequent interface and state-preview checks are recorded in
+[the manual-check status](tests_ui/MANUAL_CHECKS.md).
+
+On October 16, 2026, a direct network run of `python chat_report.py` against the
+official API succeeded: all four pairs supported at that time were stored and
+displayed. Requests use `Accept: application/json`, which is compatible with
+the API response.
