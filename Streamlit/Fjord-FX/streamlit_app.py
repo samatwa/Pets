@@ -298,7 +298,7 @@ with cards_area:
         st.info(t("no_visible_cards"), icon=":material/tune:")
 
 with analysis_area:
-    trend_column, calculator_column = st.columns([3, 1.15], gap="medium")
+    trend_column, calculator_column = st.columns([4, 1], gap="medium")
     trend = trend_column.container(border=True, height="stretch")
     calculator = calculator_column.container(border=True, height="stretch")
 with trend:
