@@ -1,5 +1,9 @@
 # Fjord FX — Norges Bank and NBU exchange rates
 
+[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://fjord-fx.streamlit.app/)
+
+[Open the live dashboard](https://fjord-fx.streamlit.app/) in your browser; no local installation is required.
+
 Python 3.11+; Windows, macOS and Linux. The main cards show **NOK per 1 USD, 1 EUR, 1 SEK, 1 UAH and 1 PLN**.
 USD/EUR appears alongside them as EUR per 1 USD. Green decreases mean foreign
 currency costs fewer kroner (NOK strengthens); red increases mean it costs more
