@@ -231,7 +231,7 @@ with st.sidebar:
     chart_pair = st.pills(t("pair"), chat.PAIRS,
                     default=None if "chart_pair" in st.session_state else "USD/NOK",
                     required=True, key="chart_pair", wrap=True, disabled=compare)
-    period = st.segmented_control(t("period"), ["1m", "3m", "1y", "3y"],
+    period = st.segmented_control(t("period"), ["1m", "3m", "1y", "3y", "5y", "10y"],
                                   format_func=lambda value: t("period_" + value),
                                   default=None if "period" in st.session_state else "1m",
                                   required=True, key="period", wrap=True)
@@ -306,8 +306,8 @@ with trend:
     st.caption((t("compare") if compare else chart_pair + " · " + t("view_" + chart_scale))
                + " · " + t("period_" + period))
     duration = {"1m": 30, "3m": 90, "1y": 366}
-    if period == "3y":
-        start = (pd.Timestamp(today) - pd.DateOffset(years=3)).date()
+    if period in ("3y", "5y", "10y"):
+        start = (pd.Timestamp(today) - pd.DateOffset(years=int(period[:-1]))).date()
     else:
         start = today - timedelta(days=duration[period] - 1)
     if compare:

@@ -69,7 +69,7 @@ For local access, the phone needs the computer's address on the same network, ra
 1. In portrait orientation at 360–390 px, check that cards stack into one readable column and that the full EUR/NOK value, signs and percentages are visible.
 2. Scroll to the chart and check that the whole page does not shift horizontally and that mini charts remain visible.
 3. Tap rate help and inspect a chart value. Confirm that tooltips can be dismissed and do not permanently obscure primary actions.
-4. Check wrapping of all five pairs, all four periods, comparison and the legend in both orientations.
+4. Check wrapping of all five pairs, all six periods, comparison and the legend in both orientations.
 5. Swipe the table to UAH/NOK and USD/EUR; each row's date must remain visible. Check vertical page scrolling when the gesture starts over the table.
 6. Enter `1000.50` with the on-screen keyboard, apply the value, swap currencies and dismiss the keyboard. Verify that the result remains accessible without clipping.
 7. Open `empty`, `loading` and `first_error`. Check messages, retry behavior and the absence of unexpected page jumps after loading.

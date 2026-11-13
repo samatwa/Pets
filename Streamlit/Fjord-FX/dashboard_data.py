@@ -21,7 +21,7 @@ import dashboard_i18n as i18n
 DB_PATH = fx.ROOT / "data/rates.sqlite3"
 REFRESH_INTERVAL = 300
 RETRY_INTERVAL = 30
-HISTORY_DAYS = 3 * 366
+HISTORY_DAYS = 10 * 366
 CONVERTER_CURRENCIES = ("USD", "EUR", "NOK", "SEK", "UAH", "PLN")
 _REFRESH_LOCK = threading.Lock()
 PAIR_LABELS = {

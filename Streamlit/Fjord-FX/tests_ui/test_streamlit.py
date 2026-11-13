@@ -1,5 +1,5 @@
 import unittest
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 from unittest.mock import patch
 from zoneinfo import ZoneInfo
@@ -438,6 +438,63 @@ class DashboardUITests(unittest.TestCase):
             self.assertNotIn("Alle", app.get_by_key("period").options)
             refresh.assert_not_called()
 
+
+    def test_long_periods_filter_at_calendar_boundary_in_all_chart_modes(self):
+        for years in (5, 10):
+            with self.subTest(years=years):
+                st.cache_data.clear()
+                boundary = date(2026 - years, 10, 16)
+                excluded = boundary - timedelta(days=1)
+                first_weekday = boundary + timedelta(days=7 - boundary.weekday()) if boundary.weekday() >= 5 else boundary
+                rows = self.snapshot.rows + [
+                    fx.Rate(currency, day, fx.Decimal(value))
+                    for day in {excluded, boundary, first_weekday, date(2024, 2, 29)}
+                    for currency, value in (("USD", "8"), ("EUR", "10"), ("SEK", "1"), ("PLN", "2"))]
+                uah = {**self.snapshot.uah_values, boundary: fx.Decimal("4"), excluded: fx.Decimal("4"),
+                       first_weekday: fx.Decimal("4")}
+                extended = data.Snapshot(rows, self.snapshot.loaded_at, uah)
+                with patch.object(data, "read_snapshot", return_value=extended), \
+                        patch.object(data, "refresh_history") as refresh, \
+                        patch.object(charts, "quote_chart", wraps=charts.quote_chart) as quote, \
+                        patch.object(charts, "comparison_chart", wraps=charts.comparison_chart) as comparison:
+                    app = self.app()
+                    app.get_by_key("period").set_value(f"{years}y").run()
+                    self.assertFalse(app.exception)
+                    self.assertEqual(quote.call_args.args[0][0]["Date"], boundary)
+                    self.assertIn(date(2024, 2, 29), [row["Date"] for row in quote.call_args.args[0]])
+                    app.get_by_key("chart_scale").set_value("percent").run()
+                    self.assertFalse(app.exception)
+                    self.assertTrue(quote.call_args.kwargs["percent"])
+                    self.assertEqual(quote.call_args.args[0][0]["Date"], boundary)
+                    app.toggle(key="compare").set_value(True).run()
+                    self.assertFalse(app.exception)
+                    self.assertEqual(min(row["Date"] for row in comparison.call_args.args[0]), first_weekday)
+                    for language, label in (("nb", f"{years} år"), ("pl", f"{years} lat"),
+                                            ("uk", f"{years} років"), ("en", f"{years} years")):
+                        app.get_by_key("language").set_value(language).run()
+                        self.assertFalse(app.exception)
+                        self.assertEqual(app.get_by_key("period").value, f"{years}y")
+                        self.assertIn(label, app.get_by_key("period").options)
+                    refresh.assert_not_called()
+
+    def test_ten_year_comparison_renders_more_than_5000_observations(self):
+        first, today = date(2016, 10, 16), date(2026, 10, 16)
+        days = [first + timedelta(days=offset) for offset in range((today - first).days + 1)
+                if (first + timedelta(days=offset)).weekday() < 5]
+        rows = [fx.Rate(currency, day, fx.Decimal(value)) for day in days
+                for currency, value in (("USD", "8"), ("EUR", "10"), ("SEK", "1"), ("PLN", "2"))]
+        extended = data.Snapshot(rows, self.snapshot.loaded_at, {day: fx.Decimal("4") for day in days})
+        with patch.object(data, "read_snapshot", return_value=extended), \
+                patch.object(data, "refresh_history") as refresh, \
+                patch.object(charts, "comparison_chart", wraps=charts.comparison_chart) as comparison:
+            app = self.app()
+            app.get_by_key("period").set_value("10y").run()
+            self.assertFalse(app.exception)
+            app.toggle(key="compare").set_value(True).run()
+            self.assertFalse(app.exception)
+            self.assertEqual(len(comparison.call_args.args[0]), len(days) * len(chat.NOK_PAIRS))
+            self.assertGreater(len(comparison.call_args.args[0]), 5000)
+            refresh.assert_not_called()
 
     def test_language_switch_preserves_filters_converter_and_does_not_refresh(self):
         app = self.app()

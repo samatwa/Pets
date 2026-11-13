@@ -7,7 +7,7 @@ Official exchange rates, historical charts and currency conversion.
 ## Features
 
 - Six currency pairs: USD/NOK, EUR/NOK, SEK/NOK, UAH/NOK, PLN/NOK and USD/EUR.
-- Historical charts for up to three years, with percentage comparisons.
+- Historical charts for up to ten years, with percentage comparisons.
 - Currency conversion between USD, EUR, NOK, SEK, UAH and PLN.
 - Recent rates and CSV downloads.
 

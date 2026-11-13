@@ -72,7 +72,7 @@ Use the main chart with its labeled scale or percentage mode for precise changes
 ## Streamlit dashboard — Fjord FX
 
 The interactive dashboard includes five NOK rate cards and a USD/EUR card in an equal-width grid, with changes and
-sparklines, a chart with 1-month / 3-month / 1-year / 3-year periods, percentage
+sparklines, a chart with 1-month / 3-month / 1-year / 3-year / 5-year / 10-year periods, percentage
 comparison of the five NOK pairs, a converter with reverse directions, the latest ten weekdays and CSV
 downloads.
 
@@ -140,7 +140,7 @@ Open `http://localhost:8501`. Run from the project directory so that
 
 The dashboard reads the existing database. If none exists, it automatically
 downloads history on the first visit. **Update rates** downloads approximately
-three years of official Norges Bank and NBU history and updates the same database,
+ten years of official Norges Bank and NBU history and updates the same database,
 CSV files and reports.
 
 Updates are shared by all visitors within one application process. Saved data
@@ -153,9 +153,14 @@ not clear history.
 
 A dash in the table means no saved value exists for that date, including today
 before publication. Chart periods are measured from the current date in Oslo;
-changing the period does not change the latest card values. **3 years** means
-three calendar years, accounting for leap dates. If the database contains only
-one year of history, use **Update rates** to download the remainder.
+changing the period does not change the latest card values. **3 years**, **5 years**
+and **10 years** use calendar years, accounting for leap dates. If the database
+contains a shorter history, use **Update rates** to download the remainder.
+
+Ten years contain roughly 3.3 times as many observations as three years. SQLite
+updates existing currency/date records without duplicating them, and CSV exports
+are replaced. Each refresh also retains new raw JSON responses in `data/raw`, so
+that folder grows with the number of refreshes as well as the history length.
 
 The rate chart uses the selected period's minimum and maximum plus a small margin,
 rather than starting at zero, so small movements remain visible in the original

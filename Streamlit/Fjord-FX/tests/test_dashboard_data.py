@@ -150,8 +150,8 @@ class RefreshTests(unittest.TestCase):
             results = list(pool.map(lambda _: data.refresh_history(), range(4)))
         self.assertEqual(self.fetch.call_count, 2)  # One request per bank.
         urls = [call.args[0] for call in self.fetch.call_args_list]
-        self.assertTrue(any("startPeriod=2023-" in url for url in urls))
-        self.assertTrue(any("start=2023" in url for url in urls))
+        self.assertTrue(any("startPeriod=2016-10-16" in url for url in urls))
+        self.assertTrue(any("start=20161016" in url for url in urls))
         self.assertTrue(results[0].rows)
         self.assertEqual(results[0].uah_values[date(2026, 10, 23)], Decimal("4.8068"))
         self.assertTrue(all(snapshot == results[0] for snapshot in results))
