@@ -64,15 +64,19 @@ class DashboardUITests(unittest.TestCase):
         self.assertIn("Oslo · 18:00:00", captions)
         self.assertIn("Kyiv · 19:00:00", captions)
         self.assertIn("Warsaw · 18:00:00", captions)
+        self.assertIn("Moscow · 19:00:00", captions)
         app.get_by_key("language").set_value("nb").run()
         self.assertFalse(app.exception)
         self.assertIn("Oslo · 18:00:00", [caption.value for caption in app.caption])
         self.assertIn("Kyiv · 19:00:00", [caption.value for caption in app.caption])
         self.assertIn("Warszawa · 18:00:00", [caption.value for caption in app.caption])
-        for language, city in (("pl", "Warszawa"), ("uk", "Варшава")):
+        for language, city, moscow in (("pl", "Warszawa", "Moskwa"),
+                                       ("uk", "Варшава", "Москва"),
+                                       ("ru", "Варшава", "Москва")):
             app.get_by_key("language").set_value(language).run()
             self.assertFalse(app.exception)
             self.assertIn(f"{city} · 18:00:00", [caption.value for caption in app.caption])
+            self.assertIn(f"{moscow} · 19:00:00", [caption.value for caption in app.caption])
         app.get_by_key("language").set_value("en").run()
         with patch.object(fx, "oslo_now", return_value=datetime.fromisoformat("2026-12-16T22:30:45+00:00")):
             app.run()
@@ -81,10 +85,11 @@ class DashboardUITests(unittest.TestCase):
         self.assertIn("Oslo · 23:30:45", captions)
         self.assertIn("Kyiv · 00:30:45", captions)
         self.assertIn("Warsaw · 23:30:45", captions)
+        self.assertIn("Moscow · 01:30:45", captions)
 
-    def test_removed_language_session_falls_back_to_english(self):
+    def test_unsupported_language_session_falls_back_to_english(self):
         app = AppTest.from_file(str(ROOT / "streamlit_app.py"), default_timeout=30)
-        app.session_state["language"] = "ru"
+        app.session_state["language"] = "de"
         app.run()
         self.assertFalse(app.exception)
         self.assertEqual(app.get_by_key("language").value, "en")
@@ -470,7 +475,8 @@ class DashboardUITests(unittest.TestCase):
                     self.assertFalse(app.exception)
                     self.assertEqual(min(row["Date"] for row in comparison.call_args.args[0]), first_weekday)
                     for language, label in (("nb", f"{years} år"), ("pl", f"{years} lat"),
-                                            ("uk", f"{years} років"), ("en", f"{years} years")):
+                                            ("uk", f"{years} років"), ("ru", f"{years} лет"),
+                                            ("en", f"{years} years")):
                         app.get_by_key("language").set_value(language).run()
                         self.assertFalse(app.exception)
                         self.assertEqual(app.get_by_key("period").value, f"{years}y")
@@ -554,6 +560,7 @@ class DashboardUITests(unittest.TestCase):
             for language, title, heading, button in [
                 ("pl", "Przegląd walut", "Data", "Aktualizuj kursy"),
                 ("uk", "Огляд валют", "Дата", "Оновити курси"),
+                ("ru", "Обзор валют", "Дата", "Обновить курсы"),
             ]:
                 with self.subTest(language=language):
                     app.get_by_key("language").set_value(language).run()

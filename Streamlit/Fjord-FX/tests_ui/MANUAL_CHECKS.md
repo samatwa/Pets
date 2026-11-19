@@ -22,9 +22,17 @@ browser access host and `Computer Use native pipe is unavailable ... os error 2`
 
 The following items are pending manual checks, not claims of completed verification.
 
-## Language update
+## Language update — November 19, 2026
 
-The current interface supports English and Norwegian Bokmål. Russian text was replaced with English in errors, terminal reports and internal chart/table fields; the Russian language option was removed. Sessions with the former selection fall back to English. Repeat the pending visual checks in both supported languages.
+The interface supports English, Norwegian Bokmål, Polish, Ukrainian and Russian.
+The Russian flag selects translated controls, charts, converter, tables and CSV.
+Header clocks include Moscow alongside Oslo, Kyiv and Warsaw. Repeat the pending
+visual and keyboard checks in all five languages, including the five-flag selector
+and four clocks on narrow screens.
+
+## Historical language update — October 24, 2026
+
+At that time, the interface supported English and Norwegian Bokmål. Russian text was replaced with English in errors, terminal reports and internal chart/table fields; the Russian language option was removed. Sessions with the former selection fell back to English.
 
 After this update, all 39 core tests and 33 interface/preview checks passed, including the removed-language session fallback. All 16 Python source/test files were also checked for remaining Cyrillic text; none was found. Physical-device and manual accessibility checks remain pending.
 

@@ -40,7 +40,7 @@ class LanguageTests(unittest.TestCase):
         self.assertEqual(i18n.number(Decimal("12345.678"), ",.2f", language="en"), "12,345.68")
         self.assertEqual(i18n.number(Decimal("12345.678"), ",.2f", language="nb"), "12 345,68")
         self.assertEqual(i18n.number(Decimal("-0.023"), "+.4f", language="nb"), "-0,0230")
-        for language in ("pl", "uk"):
+        for language in ("pl", "uk", "ru"):
             self.assertEqual(i18n.number(value, language=language), "9,4410")
             self.assertEqual(i18n.number(Decimal("12345.678"), ",.2f", language=language), "12 345,68")
 
@@ -48,7 +48,8 @@ class LanguageTests(unittest.TestCase):
         record = {"Date": date(2026, 10, 23), **{p: None for p in chat.PAIRS}}
         record["UAH/NOK"] = Decimal("4.8068")
         for language, heading, value in [("en", "Date", "4.8068"), ("nb", "Dato", "4,8068"),
-                                         ("pl", "Data", "4,8068"), ("uk", "Дата", "4,8068")]:
+                                         ("pl", "Data", "4,8068"), ("uk", "Дата", "4,8068"),
+                                         ("ru", "Дата", "4,8068")]:
             rows = list(csv.reader(io.StringIO(data.csv_bytes([record], language=language).decode("utf-8-sig")), delimiter=";"))
             self.assertEqual(rows[0], [heading, *chat.PAIRS])
             self.assertEqual(rows[1], ["23.10.2026", *[value if p == "UAH/NOK" else "" for p in chat.PAIRS]])

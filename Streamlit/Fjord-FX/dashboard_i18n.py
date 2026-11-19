@@ -1,8 +1,8 @@
-"""English, Norwegian Bokmål, Polish and Ukrainian dashboard translations."""
+"""English, Norwegian Bokmål, Polish, Ukrainian and Russian dashboard translations."""
 import base64
 from decimal import Decimal
 
-LANGUAGES = {"en": "English", "nb": "Norsk", "pl": "Polski", "uk": "Українська"}
+LANGUAGES = {"en": "English", "nb": "Norsk", "pl": "Polski", "uk": "Українська", "ru": "Русский"}
 _LANGUAGE_INDEX = {code: index for index, code in enumerate(LANGUAGES)}
 TEXT = {
     "settings": ("Settings", "Innstillinger"),
@@ -18,6 +18,7 @@ TEXT = {
     "kyiv": ("Kyiv", "Kyiv"),
     "oslo": ("Oslo", "Oslo"),
     "warsaw": ("Warsaw", "Warszawa"),
+    "moscow": ("Moscow", "Moskva"),
     "intro": ("Dollar, euro, Scandinavian currencies, hryvnia and Polish zloty — in one place.", "Dollar, euro, skandinaviske valutaer, hryvnia og polske zloty — samlet på ett sted."),
     "refresh": ("Update rates", "Oppdater kurser"),
     "loading": ("Fetching official rates from Norges Bank and NBU…", "Henter offisielle kurser fra Norges Bank og NBU…"),
@@ -121,6 +122,7 @@ _PL_UK = {
     "kyiv": ("Kijów", "Київ"),
     "oslo": ("Oslo", "Осло"),
     "warsaw": ("Warszawa", "Варшава"),
+    "moscow": ("Moskwa", "Москва"),
     "intro": ("Dolar, euro, waluty skandynawskie, hrywna i polski złoty — w jednym miejscu.", "Долар, євро, скандинавські валюти, гривня та польський злотий — в одному місці."),
     "refresh": ("Aktualizuj kursy", "Оновити курси"),
     "loading": ("Pobieranie oficjalnych kursów z Norges Bank i NBU…", "Завантаження офіційних курсів Norges Bank і НБУ…"),
@@ -207,6 +209,105 @@ _PL_UK = {
 }
 TEXT = {key: (*texts, *_PL_UK[key]) for key, texts in TEXT.items()}
 
+_RU = {
+    "settings": "Настройки",
+    "language": "Язык",
+    "visible_cards": "Видимые карточки",
+    "visible_cards_help": "Выберите карточки для отображения. В таблице, на графике и в конвертере по-прежнему доступны все пары.",
+    "no_visible_cards": "Выберите карточки в настройках боковой панели, чтобы показать здесь курсы.",
+    "title": "Обзор валют",
+    "nok_direction": "NOK за 1 единицу иностранной валюты · Зелёный ↓: NOK укрепляется · Красный ↑: NOK слабеет",
+    "cross_direction": "USD/EUR · Отдельный кросс-курс · EUR за 1 USD",
+    "kyiv": "Киев",
+    "oslo": "Осло",
+    "warsaw": "Варшава",
+    "moscow": "Москва",
+    "intro": "Доллар, евро, скандинавские валюты, гривна и польский злотый — в одном месте.",
+    "refresh": "Обновить курсы",
+    "loading": "Загрузка официальных курсов Norges Bank и НБУ…",
+    "updated": "Курсы и история обновлены",
+    "read_error": "Не удалось прочитать сохранённую историю. Проверьте доступ к папке данных.",
+    "refresh_error": "Не удалось завершить обновление. Показаны сохранённые значения с их фактическими датами.",
+    "refresh_empty_error": "Не удалось загрузить историю. Сохранённых значений пока нет.",
+    "error_api": "Источник курсов недоступен. Проверьте подключение и повторите попытку.",
+    "error_data": "Источник вернул некорректные или неполные данные. Эти значения не импортированы.",
+    "error_storage": "Не удалось сохранить или прочитать локальные файлы. Проверьте доступ к папке данных.",
+    "error_nbu": "Данные Norges Bank обновлены, но обновить НБУ не удалось. Предыдущие значения UAH/NOK сохранены.",
+    "empty": "Нажмите «Обновить курсы», чтобы загрузить историю курсов.",
+    "unknown": "неизвестно",
+    "latest_date": "Дата последнего курса: {date}",
+    "loaded": "Загружено: {stamp} · Осло",
+    "changes_note": "Изменения относительно предыдущего опубликованного значения",
+    "old_data": "Последнему курсу больше четырёх дней. Обновите курсы, чтобы проверить источник.",
+    "no_today": "Значение за {date} ещё не сохранено. Карточки показывают фактическую дату курса.",
+    "no_data": "нет данных",
+    "unit": "{quote} за 1 {base}",
+    "delta_description": "{unit} относительно предыдущей публикации",
+    "mini_alt": "{pair}: последние {count} значений; наведите указатель, чтобы увидеть дату и курс",
+    "mini_period": "Последние {count} значений · {start}–{end}",
+    "compared_with": "По сравнению с {date}",
+    "no_previous": "Нет предыдущего значения",
+    "nbu_caption": "Источник: НБУ · Дата вступления в силу",
+    "mini_note": "Мини-графики показывают последние 7 опубликованных значений. Наведите указатель на график, чтобы увидеть дату и курс. Стрелка и процент сравнивают только с предыдущим значением. У каждой карточки своя шкала.",
+    "trend": "Динамика валютных курсов",
+    "pair": "Валютная пара",
+    "period": "Период",
+    "period_1m": "1 месяц",
+    "period_3m": "3 месяца",
+    "period_1y": "1 год",
+    "period_3y": "3 года",
+    "period_5y": "5 лет",
+    "period_10y": "10 лет",
+    "compare": "Сравнить валюты относительно NOK, %",
+    "view": "Вид графика",
+    "view_rate": "Курс",
+    "view_percent": "Изменение, %",
+    "comparison_alt": "Процентное изменение пяти валют относительно NOK от общей начальной даты",
+    "baseline": "Общая точка отсчёта: {date} = 0%. Пропущенные значения не заполняются.",
+    "no_common": "Нет общей даты для всех пяти пар с NOK за этот период. Обновите историю.",
+    "quote_alt": "{view} для {pair} за выбранный период; шкала соответствует диапазону данных",
+    "range": "Минимум: {low_date} — {low} · Максимум: {high_date} — {high} · Изменение за период: {change}%",
+    "percent_note": "Изменение относительно {date} (0%). Ось Y показывает проценты.",
+    "scale_note": "Автоматическая шкала соответствует выбранному диапазону данных и не начинается с нуля. Она адаптируется к обновлённым курсам, смене пары и периода, в том числе при резких колебаниях. Единицы котировки остаются прежними.",
+    "published_period": "{start} — {end} · Только опубликованные значения",
+    "empty_period": "За этот период нет сохранённых значений. Обновите историю или выберите другой период.",
+    "horizontal_note": "Даты публикаций расположены равномерно, без пустых мест для выходных. Наведите указатель между точками или над ними, чтобы увидеть ближайшую дату и значение.",
+    "converter": "Конвертер валют",
+    "latest_published": "По последнему опубликованному курсу",
+    "direction": "Направление",
+    "convert_from": "Из",
+    "convert_to": "В",
+    "reverse": "Обратное направление",
+    "amount": "Сумма в {code}",
+    "receive": "Вы получите, {code}",
+    "converter_note": "Курс от {date}. Банковские комиссии и наценки не учтены.",
+    "empty_pair": "Для этой пары пока нет данных.",
+    "week_title": "Последние 10 рабочих дней",
+    "publication_title": "Обновление валютных курсов:",
+    "week_note": "Понедельник–пятница · Валюта котировки за одну единицу базовой валюты",
+    "publication_nb": "Norges Bank: около 16:00 по времени Осло в рабочие дни (USD/NOK, EUR/NOK, USD/EUR, SEK/NOK, PLN/NOK).",
+    "publication_nbu": "НБУ: до 15:30 по киевскому времени в день установления курса (UAH/NOK). Курс вступает в силу на следующий рабочий день.",
+    "publication_refresh": "После публикации нажмите «Обновить курсы», чтобы загрузить новые значения. Результаты успешных проверок доступны всем в течение 5 минут.",
+    "download": "Скачать CSV",
+    "date": "Дата",
+    "table_alt": "Шесть валютных пар за последние десять рабочих дней; прочерк означает отсутствие сохранённого значения",
+    "missing_note": "— За эту дату нет сохранённого значения. Нажмите «Обновить курсы», чтобы проверить публикацию.",
+    "download_all": "Скачать всю сохранённую историю в CSV",
+    "sources": "Источники и расчёты",
+    "source_nb": "Источник: [официальный API Norges Bank](https://www.norges-bank.no/en/topics/Statistics/exchange_rates/). Основные карточки показывают NOK за 1 единицу иностранной валюты. SEK/NOK — котировка за 100 SEK, делённая на 100. Отдельный кросс-курс USD/EUR = USD/NOK ÷ EUR/NOK за ту же дату. Изменения сравниваются с предыдущим опубликованным значением. Пропущенные курсы за выходные и праздники не заполняются.",
+    "source_nbu": "UAH/NOK — это 1 ÷ [официальный курс НБУ](https://bank.gov.ua/ua/markets/exchangerates), опубликованный в UAH за 1 NOK. Каждое историческое значение инвертируется перед расчётом изменений. Даты вступления в силу курсов НБУ могут отличаться от дат публикаций Norges Bank.",
+    "saved_note": "История загружается автоматически при первом открытии. Результаты проверок курсов доступны всем в течение 5 минут после успешного обновления. После ошибки повторите попытку через 30 секунд.",
+    "project_folder": "Папка приложения: {path}",
+    "footer": "Fjord FX · 6 пар · Norges Bank + НБУ · Europe/Oslo",
+    "period_change": "Изменение за период",
+    "percent_axis": "Изменение с начала периода, %",
+    "show_mini": "Показать мини-графики",
+    "chart_help": "Как читать графики",
+    "table_scroll": "Прокрутите вбок, чтобы увидеть все пары. Дата остаётся видимой.",
+    "amount_help": "При вводе суммы используйте точку как десятичный разделитель. Нажмите Enter или выйдите из поля, чтобы применить сумму.",
+}
+TEXT = {key: (*texts, _RU[key]) for key, texts in TEXT.items()}
+
 
 # PNG images carry intrinsic dimensions, unlike the previous viewBox-only SVGs.
 # Keep them embedded so flags render offline and do not depend on emoji fonts.
@@ -214,6 +315,7 @@ _FLAG_PNG = {'en': 'iVBORw0KGgoAAAANSUhEUgAAAHgAAAA8CAIAAAAiz+n/AAAIBElEQVR42u3c
  'nb': 'iVBORw0KGgoAAAANSUhEUgAAAFgAAABACAIAAAARcieVAAAAr0lEQVR42u3asQ3CMBAFUBulDDuQCWCJTBHGYwpYgg0yBANcuogihZGuMNL71RWWi6ezJctXn+O1ZGT+vPe6TvfDNbE+9vp1vpWecioCAgQIECBAgAABAgQIECBAgAABAgQIECBAdJ4aEfmbNvxr6AgQIP7jjiiXhYKOAAECBAgQILw1dAQIENkZsuYdv+csW2LO0tEAAQIECBAgQIAAAQIECBAgQAgIECBAgADxYzbczhfhvHDOEgAAAABJRU5ErkJggg==',
 }
 _FLAG_PNG.update({
+    "ru": "iVBORw0KGgoAAAANSUhEUgAAAFoAAAA8CAIAAABpZzoSAAAAbklEQVR42u3QURUAEBQFwZtEAQkU1kge/tDhzZ5NMNn6CgIcOHDgwIEDBw4cOHDgwIEDBw4cOIpyZEy/EeDAgQMHDhw4cODAgQMHDhw4cODAUfTVm+84cODAgQMHDhw4cODAgQMHDhw4cOAoynEA6PD/z3w+JtUAAAAASUVORK5CYII=",
     "pl": "iVBORw0KGgoAAAANSUhEUgAAAFgAAABACAIAAAARcieVAAAAhUlEQVR4nO3QQQnAMAAEwYiInPhXES8tlLUQmscsJ+CY8ehr/H3glkAUiAJRIApEgSgQBaJAFIgCUSAKRIEoEAWiQBSIAlEgCkSBKBAFokAUiAJRIApEgaix57I9FwgQIECAAAECBAgQIECAAAECBAgQIK4YCBAgQIAAAQIECBAgQOwDEC/utcWkzUGXbwAAAABJRU5ErkJggg==",
     "uk": "iVBORw0KGgoAAAANSUhEUgAAAFgAAABACAIAAAARcieVAAAAvklEQVR4nO3OQQ0AIAAAIVsa1SjG0ZnieLgRgDHm+p5+gOgHiH6A6AeIfoDoB4h+gOgHiH6A6AeIfoDoB4h+gOgHiH6A6AeIfoDoB4h+gOgHiH6A6AeIfoDoB4h+gOgHiH6A6AeIfoDoB4h+gOgHiH6A6AeIfoDoB4h+gDj7e/oBoh8g+gGiHyD6AaIfIPoBoh8g+gGiHyD6AaIfIPoBoh8g+gGiHyD6AaIfIPoBoh8g+gGiHyD6AaIfIPoBoh8g+gGiHyD6AaIfIPoBoh8g+gGiHyD6AaIfIPrBMVy9mM3SM+1G8AAAAABJRU5ErkJggg==",
 })
@@ -229,6 +331,7 @@ def flag_label(language):
 _CITY_FLAG_PNG = {
     "oslo": _FLAG_PNG["nb"],
     "warsaw": _FLAG_PNG["pl"],
+    "moscow": _FLAG_PNG["ru"],
     "kyiv": "iVBORw0KGgoAAAANSUhEUgAAAFgAAABACAIAAAARcieVAAAAaElEQVR42u3QAQ0AAAQAMC1FFUUcpoZ9e4JHZHEUiBAhQoQIESJEiBAhQoQIESJEiBAhQoQIESJEiBAhQoQIEW9NcxSIECFChAgRIkSIECFChAgRIkSIECFChAgRIkSIECFChAgRbyMWvZjN0sjDRBoAAAAASUVORK5CYII=",
 }
 

@@ -11,7 +11,8 @@ Official exchange rates, historical charts and currency conversion.
 - Currency conversion between USD, EUR, NOK, SEK, UAH and PLN.
 - Recent rates and CSV downloads.
 
-English, Norwegian (Bokmål), Polish and Ukrainian. Light and dark themes.
+English, Norwegian (Bokmål), Polish, Ukrainian and Russian. Light and dark themes.
+Live local clocks for Oslo, Kyiv, Warsaw and Moscow.
 
 Rates come from Norges Bank and the National Bank of Ukraine. Bank fees are excluded.
 

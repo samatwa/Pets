@@ -133,7 +133,8 @@ def show_local_times(language):
     with st.container(horizontal=True, gap="medium"):
         for city, zone, country in (("oslo", "Europe/Oslo", "Norway"),
                                     ("kyiv", "Europe/Kyiv", "Ukraine"),
-                                    ("warsaw", "Europe/Warsaw", "Poland")):
+                                    ("warsaw", "Europe/Warsaw", "Poland"),
+                                    ("moscow", "Europe/Moscow", "Russia")):
             local_time = now.astimezone(ZoneInfo(zone)).strftime("%H:%M:%S")
             with st.container(horizontal=True, width="content", vertical_alignment="center", gap="xxsmall"):
                 st.image(i18n.city_flag(city), width=20, alt=country)

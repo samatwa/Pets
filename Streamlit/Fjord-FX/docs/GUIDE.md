@@ -9,21 +9,21 @@ currency costs fewer kroner (NOK strengthens); red increases mean it costs more
 USD, EUR, SEK and PLN quotes; UAH/NOK is the inverse of the official National Bank
 of Ukraine rate in UAH per 1 NOK.
 
-## English / Norwegian / Polish / Ukrainian
+## English / Norwegian / Polish / Ukrainian / Russian
 
-Use the **🇬🇧 / 🇳🇴 / 🇵🇱 / 🇺🇦** flag selector at the top of the sidebar to choose
-English, Norwegian, Polish or Ukrainian. Language names appear on hover. Embedded flag
+Use the **🇬🇧 / 🇳🇴 / 🇵🇱 / 🇺🇦 / 🇷🇺** flag selector at the top of the sidebar to choose
+English, Norwegian, Polish, Ukrainian or Russian. Language names appear on hover. Embedded flag
 images work offline and display at approximately 28 × 20 pixels, preserving
 their proportions without rounded corners. A rectangular border marks the selection.
 The Norwegian translation uses **Bokmål**; English is the default.
 
 The selection changes buttons, explanations, the converter, table, axis labels
 and chart tooltips. Displayed results use a decimal point in English and a decimal
-comma in Norwegian, Polish and Ukrainian. **Amount input uses a decimal point in all languages.**
+comma in Norwegian, Polish, Ukrainian and Russian. **Amount input uses a decimal point in all languages.**
 CSV downloads follow the current interface language. Filters and the amount remain
 selected when switching languages within an open session; switching does not fetch
 the API again. Terminal messages and generated text reports use English and decimal points.
-Existing sessions with the removed Russian selection return to English automatically.
+Existing sessions with a Russian selection keep Russian; unsupported language codes fall back to English.
 
 To update from an archive, stop Streamlit, replace the application files and
 restart the dashboard. Keep the existing **data** directory and **.venv**
@@ -106,10 +106,11 @@ The columns stack on screens up to 640 px wide.
 header. The rate date and download time remain above the cards.
 Pair and period options are available without hidden horizontal scrolling.
 
-Flags remain rectangular. Sources appear below the logo; local Oslo, Kyiv and Warsaw
+Flags remain rectangular. Sources appear below the logo; local Oslo, Kyiv, Warsaw and Moscow
 times share a compact line with country flags. Clocks show seconds, update every
-second without fetching rates again, and observe daylight saving time using
-`Europe/Oslo`, `Europe/Kyiv` and `Europe/Warsaw`.
+second without fetching rates again, and use `Europe/Oslo`, `Europe/Kyiv`,
+`Europe/Warsaw` and `Europe/Moscow`. Time-zone rules apply automatically, including
+daylight saving where applicable. Moscow time is UTC+3 throughout the year.
 
 The converter has **From currency** and **To currency** selectors.
 It starts with SEK → NOK, matching the quote direction in the SEK/NOK card.
