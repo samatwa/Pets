@@ -316,7 +316,7 @@ with trend:
         if records:
             st.markdown(t("published_period", start=date_label(min(r["Date"] for r in records)),
                           end=date_label(max(r["Date"] for r in records))), text_alignment="center", width="stretch")
-            st.altair_chart(charts.comparison_chart(records, language=language), width="stretch",
+            st.altair_chart(charts.comparison_chart(records, language=language), width="stretch", height="stretch",
                             alt=t("comparison_alt"))
             st.caption(t("baseline", date=date_label(min(r["Date"] for r in records))))
         else:
@@ -327,7 +327,7 @@ with trend:
             percent = chart_scale == "percent"
             st.markdown(t("published_period", start=date_label(records[0]["Date"]),
                           end=date_label(records[-1]["Date"])), text_alignment="center", width="stretch")
-            st.altair_chart(charts.quote_chart(records, labels[chart_pair], percent=percent, language=language), width="stretch",
+            st.altair_chart(charts.quote_chart(records, labels[chart_pair], percent=percent, language=language), width="stretch", height="stretch",
                             alt=t("quote_alt", view=t("view_" + chart_scale), pair=chart_pair))
             lowest = min(records, key=lambda record: record["Rate"])
             highest = max(records, key=lambda record: record["Rate"])
